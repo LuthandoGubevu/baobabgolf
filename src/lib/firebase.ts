@@ -16,10 +16,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const analytics = typeof window !== 'undefined' && isSupported() ? getAnalytics(app) : null;
 
-// Initialize Analytics and export it
-const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null);
 
 export { app, db, analytics };
