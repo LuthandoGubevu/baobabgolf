@@ -11,6 +11,7 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useParams } from 'next/navigation';
 
 const totalHoles = 18;
 
@@ -26,7 +27,9 @@ type TeamData = {
     scores: Scores;
 }
 
-export default function TeamScoringPage({ params }: { params: { id: string } }) {
+export default function TeamScoringPage() {
+  const params = useParams();
+  const teamId = params.id as string;
   const [teamData, setTeamData] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentHole, setCurrentHole] = useState(1);
@@ -35,9 +38,9 @@ export default function TeamScoringPage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     const fetchTeamData = async () => {
-      if (!params.id) return;
+      if (!teamId) return;
       try {
-        const teamDoc = await getDoc(doc(db, "teams", params.id));
+        const teamDoc = await getDoc(doc(db, "teams", teamId));
         if (teamDoc.exists()) {
           const data = teamDoc.data() as TeamData;
           setTeamData(data);
@@ -54,7 +57,7 @@ export default function TeamScoringPage({ params }: { params: { id: string } }) 
     };
 
     fetchTeamData();
-  }, [params.id, toast]);
+  }, [teamId, toast]);
 
   const handleScoreChange = (hole: number, player: string, value: string) => {
     const newScores = { ...scores };
@@ -93,7 +96,7 @@ export default function TeamScoringPage({ params }: { params: { id: string } }) 
 
   const handleSaveProgress = async () => {
     try {
-        await setDoc(doc(db, "teams", params.id), { ...teamData, scores }, { merge: true });
+        await setDoc(doc(db, "teams", teamId), { ...teamData, scores }, { merge: true });
         toast({
             title: "Progress Saved!",
             description: "Your scores have been successfully saved."
