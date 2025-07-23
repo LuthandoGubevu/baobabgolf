@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react';
-import { Home, BarChart, MessageSquare } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 
 const spectatorNavItems = [
-  { href: '/spectator', label: 'Summary', icon: Home },
-  { href: '/spectator/leaderboard', label: 'Leaderboard', icon: BarChart },
-  { href: '/spectator/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/spectator', label: 'Summary', icon: 'Home' },
+  { href: '/spectator/leaderboard', label: 'Leaderboard', icon: 'BarChart' },
+  { href: '/spectator/chat', label: 'Chat', icon: 'MessageSquare' },
 ];
 
 export default function SpectatorLayout({ children }: { children: ReactNode }) {

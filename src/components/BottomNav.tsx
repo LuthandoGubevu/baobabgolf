@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/Icon';
 
 type NavItem = {
   href: string;
   label: string;
-  icon: React.ElementType;
+  icon: string;
 };
 
 type BottomNavProps = {
@@ -34,7 +35,7 @@ export function BottomNav({ navItems }: BottomNavProps) {
               )}
             >
               <Link href={item.href}>
-                <item.icon className="h-6 w-6" />
+                <Icon name={item.icon} className="h-6 w-6" />
                 <span>{item.label}</span>
               </Link>
             </Button>

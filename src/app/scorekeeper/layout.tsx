@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react';
-import { Home, Trophy, MessageSquare } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 
 const scorekeeperNavItems = [
-  { href: '/scorekeeper', label: 'Games', icon: Home },
-  { href: '/scorekeeper/leaderboard', label: 'Leaderboard', icon: Trophy },
-  { href: '/scorekeeper/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/scorekeeper', label: 'Games', icon: 'Home' },
+  { href: '/scorekeeper/leaderboard', label: 'Leaderboard', icon: 'Trophy' },
+  { href: '/scorekeeper/chat', label: 'Chat', icon: 'MessageSquare' },
 ];
 
 export default function ScorekeeperLayout({ children }: { children: ReactNode }) {
