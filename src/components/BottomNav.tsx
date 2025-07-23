@@ -28,7 +28,7 @@ export function BottomNav({ navItems }: BottomNavProps) {
       case 3: return 'grid-cols-3';
       case 4: return 'grid-cols-4';
       case 5: return 'grid-cols-5';
-      default: return 'grid-cols-1'; // Fallback
+      default: return `grid-cols-${count}`; // Fallback for more items
     }
   }
 

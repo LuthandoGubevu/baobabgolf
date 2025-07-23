@@ -4,6 +4,7 @@ import { BottomNav } from '@/components/BottomNav';
 
 const spectatorNavItems = [
   { href: '/spectator', label: 'Summary', icon: 'Home' },
+  { href: '/spectator/live', label: 'Live Game', icon: 'Trophy' },
   { href: '/spectator/leaderboard', label: 'Leaderboard', icon: 'BarChart' },
   { href: '/spectator/chat', label: 'Chat', icon: 'MessageSquare' },
   { href: '/logout', label: 'Logout', icon: 'LogOut' },
