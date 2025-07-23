@@ -95,6 +95,23 @@ export default function TeamScoringPage() {
   }, [scores]);
 
   const handleSaveProgress = async () => {
+    const currentHoleScores = scores[currentHole];
+    const allScoresEntered = teamData?.players.every(
+      (player) =>
+        currentHoleScores?.[player] !== null &&
+        currentHoleScores?.[player] !== undefined &&
+        String(currentHoleScores?.[player]).trim() !== ''
+    );
+
+    if (!allScoresEntered) {
+      toast({
+        title: "Incomplete Scores",
+        description: "Please enter a score for every player for the current hole.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
         await setDoc(doc(db, "teams", teamId), { ...teamData, scores }, { merge: true });
         toast({
