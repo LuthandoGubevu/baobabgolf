@@ -1,27 +1,63 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PlusCircle, Play, Users } from 'lucide-react';
+import { PlusCircle, Play, Users, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 
-const games = [
-  { id: 'game1', name: 'Front 9 Challenge', status: 'In Progress', holes: 9, teams: 12 },
-  { id: 'game2', name: 'Charity Scramble', status: 'Completed', holes: 18, teams: 24 },
-  { id: 'game3', name: 'Member-Guest', status: 'Not Started', holes: 18, teams: 18 },
-];
+interface Game {
+    id: string;
+    name: string;
+    status: 'Not Started' | 'In Progress' | 'Completed';
+    holes: 9 | 18;
+    teamsCount: number;
+    createdAt: any;
+}
 
 export default function ScorekeeperDashboard() {
   const [open, setOpen] = useState(false);
+  const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const handleStartGame = (holes: 9 | 18) => {
-    const newGameId = `game-${Math.random().toString(36).substr(2, 9)}`;
-    console.log(`Starting a new ${holes}-hole game with id: ${newGameId}`);
-    setOpen(false);
-    router.push(`/scorekeeper/game/${newGameId}`);
+  useEffect(() => {
+    const fetchGames = async () => {
+        setLoading(true);
+        try {
+            const gamesCollection = collection(db, 'games');
+            const gameSnapshot = await getDocs(gamesCollection);
+            const gamesList = gameSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Game));
+            // Sort games by creation date, newest first
+            gamesList.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+            setGames(gamesList);
+        } catch (error) {
+            console.error("Error fetching games: ", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchGames();
+  }, []);
+
+  const handleStartGame = async (holes: 9 | 18) => {
+    try {
+        const newGameRef = await addDoc(collection(db, 'games'), {
+            name: `New ${holes}-Hole Game`,
+            status: 'Not Started',
+            holes: holes,
+            teamsCount: 0,
+            createdAt: serverTimestamp()
+        });
+        console.log(`Starting a new ${holes}-hole game with id: ${newGameRef.id}`);
+        setOpen(false);
+        router.push(`/scorekeeper/game/${newGameRef.id}`);
+    } catch (error) {
+        console.error("Error starting new game: ", error);
+    }
   };
 
   return (
@@ -55,34 +91,54 @@ export default function ScorekeeperDashboard() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {games.map((game) => (
-          <Card key={game.id}>
+
+      {loading ? (
+          <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+      ) : games.length === 0 ? (
+          <Card className="flex flex-col items-center justify-center h-64 border-dashed">
             <CardHeader>
-              <CardTitle>{game.name}</CardTitle>
-              <CardDescription>{game.holes} Holes</CardDescription>
+                <CardTitle>No Games Found</CardTitle>
+                <CardDescription>Start a new game to begin.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-between items-center text-sm text-muted-foreground">
-                <div className="flex items-center">
-                  <Users className="mr-1 h-4 w-4" />
-                  {game.teams} Teams
-                </div>
-                <Badge variant={
-                  game.status === 'In Progress' ? 'default' :
-                  game.status === 'Completed' ? 'secondary' : 'outline'
-                }>{game.status}</Badge>
-              </div>
+                <Button onClick={() => setOpen(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Start New Game
+                </Button>
             </CardContent>
-            <CardFooter>
-              <Button className="w-full" onClick={() => router.push(`/scorekeeper/game/${game.id}`)}>
-                <Play className="mr-2 h-4 w-4" />
-                {game.status === 'In Progress' ? 'Continue Scoring' : 'View Game'}
-              </Button>
-            </CardFooter>
           </Card>
-        ))}
-      </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {games.map((game) => (
+            <Card key={game.id}>
+                <CardHeader>
+                <CardTitle>{game.name}</CardTitle>
+                <CardDescription>{game.holes} Holes</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <div className="flex items-center">
+                    <Users className="mr-1 h-4 w-4" />
+                    {game.teamsCount} Teams
+                    </div>
+                    <Badge variant={
+                    game.status === 'In Progress' ? 'default' :
+                    game.status === 'Completed' ? 'secondary' : 'outline'
+                    }>{game.status}</Badge>
+                </div>
+                </CardContent>
+                <CardFooter>
+                <Button className="w-full" onClick={() => router.push(`/scorekeeper/team/some-team-id`)}>
+                    <Play className="mr-2 h-4 w-4" />
+                    {game.status === 'In Progress' ? 'Continue Scoring' : 'View Game'}
+                </Button>
+                </CardFooter>
+            </Card>
+            ))}
+        </div>
+      )}
     </>
   );
 }

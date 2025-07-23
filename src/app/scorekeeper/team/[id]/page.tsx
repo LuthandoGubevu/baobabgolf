@@ -11,7 +11,7 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 const totalHoles = 18;
 
@@ -30,6 +30,7 @@ type TeamData = {
 export default function TeamScoringPage() {
   const params = useParams();
   const teamId = params.id as string;
+  const router = useRouter();
   const [teamData, setTeamData] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentHole, setCurrentHole] = useState(1);
@@ -114,11 +115,18 @@ export default function TeamScoringPage() {
 
     try {
         await setDoc(doc(db, "teams", teamId), { ...teamData, scores }, { merge: true });
-        toast({
-            title: "Progress Saved!",
-            description: `Scores for hole ${currentHole} have been successfully saved.`
-        });
-        if (currentHole < totalHoles) {
+        
+        if (currentHole === totalHoles) {
+             toast({
+                title: "Round Finished!",
+                description: `Final scores for ${teamData?.name} have been saved.`
+            });
+            router.push('/scorekeeper');
+        } else {
+            toast({
+                title: "Progress Saved!",
+                description: `Scores for hole ${currentHole} have been successfully saved.`
+            });
             setCurrentHole(h => h + 1);
         }
     } catch (error) {
