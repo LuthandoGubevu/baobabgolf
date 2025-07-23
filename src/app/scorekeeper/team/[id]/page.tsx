@@ -99,8 +99,11 @@ export default function TeamScoringPage() {
         await setDoc(doc(db, "teams", teamId), { ...teamData, scores }, { merge: true });
         toast({
             title: "Progress Saved!",
-            description: "Your scores have been successfully saved."
-        })
+            description: `Scores for hole ${currentHole} have been successfully saved.`
+        });
+        if (currentHole < totalHoles) {
+            setCurrentHole(h => h + 1);
+        }
     } catch (error) {
         console.error("Error saving scores: ", error);
         toast({
@@ -211,7 +214,7 @@ export default function TeamScoringPage() {
          <CardFooter>
             <Button className="w-full" onClick={handleSaveProgress}>
                 <Save className="mr-2 h-4 w-4" />
-                Save Progress
+                {currentHole === totalHoles ? 'Save and Finish' : 'Save and Go to Next Hole'}
             </Button>
         </CardFooter>
       </Card>
