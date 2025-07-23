@@ -6,6 +6,7 @@ const spectatorNavItems = [
   { href: '/spectator', label: 'Summary', icon: 'Home' },
   { href: '/spectator/leaderboard', label: 'Leaderboard', icon: 'BarChart' },
   { href: '/spectator/chat', label: 'Chat', icon: 'MessageSquare' },
+  { href: '/logout', label: 'Logout', icon: 'LogOut' },
 ];
 
 export default function SpectatorLayout({ children }: { children: ReactNode }) {
