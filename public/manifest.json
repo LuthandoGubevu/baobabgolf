@@ -1,0 +1,9 @@
+{
+  "name": "Baobab Golf",
+  "short_name": "BaobabGolf",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#e4002b",
+  "description": "The premier corporate golf challenge. Register your team, track scores, and follow the leaderboard live."
+}

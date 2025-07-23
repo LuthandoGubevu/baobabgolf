@@ -88,10 +88,15 @@ export default {
             height: '0',
           },
         },
+        'rotate': {
+          'from': { transform: 'rotate(0deg)' },
+          'to': { transform: 'rotate(360deg)' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'rotate': 'rotate 20s linear infinite',
       },
     },
   },
