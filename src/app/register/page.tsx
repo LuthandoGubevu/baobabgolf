@@ -19,6 +19,9 @@ import { Logo } from "@/components/icons"
 import { ArrowLeft } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { db } from "@/lib/firebase";
+import { addDoc, collection } from "firebase/firestore";
 
 const formSchema = z.object({
   teamName: z.string().min(2, { message: "Team name must be at least 2 characters." }),
@@ -30,6 +33,7 @@ const formSchema = z.object({
 
 export default function RegisterPage() {
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,13 +46,29 @@ export default function RegisterPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast({
-      title: "Registration Submitted!",
-      description: `Team "${values.teamName}" has been successfully registered.`,
-    })
-    form.reset();
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const teamRef = await addDoc(collection(db, "teams"), {
+        name: values.teamName,
+        players: [values.player1, values.player2, values.player3, values.player4],
+        scores: {}, // Initialize empty scores
+      });
+      
+      toast({
+        title: "Registration Submitted!",
+        description: `Team "${values.teamName}" has been successfully registered.`,
+      })
+      
+      router.push(`/scorekeeper/team/${teamRef.id}`);
+
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      toast({
+        title: "Error",
+        description: "There was a problem registering your team. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
 
   return (
