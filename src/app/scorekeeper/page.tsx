@@ -90,32 +90,6 @@ export default function ScorekeeperDashboard() {
     <>
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Start New Game
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Start a New Game</DialogTitle>
-              <DialogDescription>
-                Choose the number of holes for the new game.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <Button variant="outline" size="lg" className="h-24 flex-col" onClick={() => handleStartGame(9)}>
-                <span className="text-3xl font-bold">9</span>
-                <span className="text-muted-foreground">Holes</span>
-              </Button>
-              <Button variant="outline" size="lg" className="h-24 flex-col" onClick={() => handleStartGame(18)}>
-                <span className="text-3xl font-bold">18</span>
-                <span className="text-muted-foreground">Holes</span>
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {loading ? (
@@ -167,7 +141,7 @@ export default function ScorekeeperDashboard() {
                             {mostRecentGame.status === 'In Progress' ? 'Continue Scoring' : 'View Game'}
                         </Button>
                     ) : (
-                         <Button className="w-full" onClick={() => setOpen(true)}>
+                         <Button className="w-full" onClick={() => router.push('/scorekeeper/new-game')}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Start Your First Game
                         </Button>
