@@ -15,9 +15,9 @@ export default function SpectatorLayout({ children }: { children: ReactNode }) {
   return (
     <div className="relative flex min-h-screen w-full flex-col">
       <Image
-        src="/sunset-golf.jpg"
-        alt="A beautiful sunset over a golf course"
-        data-ai-hint="golf course sunset"
+        src="/put.jpg"
+        alt="A close up of a golf ball being putted into a hole"
+        data-ai-hint="golf putting"
         fill
         className="object-cover"
       />
