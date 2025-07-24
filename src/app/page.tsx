@@ -16,7 +16,7 @@ export default function Home() {
       />
       <div className="absolute inset-0 bg-background/80" />
       
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-primary-foreground p-4 w-full max-w-sm mx-auto text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-primary-foreground p-4 w-full max-w-sm mx-auto">
         <main className="flex flex-col items-center space-y-8 w-full">
             <Image src="/logo.png" alt="Baobab Golf Logo" width={100} height={20} className="w-full max-w-[100px] h-auto" />
             <div className="space-y-2">
