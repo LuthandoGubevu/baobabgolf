@@ -58,9 +58,10 @@ export default function LoginPage() {
         } else if (userData.role === 'spectator') {
           router.push('/spectator');
         } else {
+           // This case should ideally not be hit if registration is mandatory, but as a fallback:
            toast({
-            title: "Error",
-            description: "User role not defined. Please complete your registration.",
+            title: "Registration Incomplete",
+            description: "Your role is not defined. Please complete your registration.",
             variant: "destructive",
           });
            router.push('/auth/signup');

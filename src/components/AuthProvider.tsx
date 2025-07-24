@@ -25,25 +25,33 @@ export default function AuthProvider({ children, requiredRole }: AuthProviderPro
       if (firebaseUser) {
         setUser(firebaseUser);
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        
         if (userDoc.exists()) {
           const userData = userDoc.data();
           const userRole = userData.role;
           setRole(userRole);
 
           if (requiredRole && userRole !== requiredRole) {
-            // If the user is on a page that requires a different role, redirect them.
+            // If on a page that requires a different role, redirect to the correct dashboard
             const destination = userRole === 'scorekeeper' ? '/scorekeeper' : '/spectator';
             router.push(destination);
           } else {
              setLoading(false);
           }
         } else {
-            // No user role found, likely an incomplete registration.
-            // Don't log them out, redirect to finish signup unless they are already there.
-            if (!pathname.startsWith('/auth/signup')) {
-                 router.push('/auth/signup');
+            // User exists in Auth, but no Firestore doc.
+            // This is likely a brand-new user whose doc hasn't been created yet, or an incomplete registration.
+            // Don't redirect immediately. The login/signup pages will handle it.
+            // If we are on a protected page, we need to decide where to send them.
+            if (requiredRole) {
+              // Redirect to signup to complete profile.
+              if (!pathname.startsWith('/auth/signup')) {
+                   router.push('/auth/signup');
+              } else {
+                  setLoading(false);
+              }
             } else {
-                 setLoading(false);
+              setLoading(false);
             }
         }
       } else {
