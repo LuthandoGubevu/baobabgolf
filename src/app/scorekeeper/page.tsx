@@ -2,19 +2,18 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PlusCircle, Play, Users, Loader2, Trophy, BarChart, User, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, limit, where } from 'firebase/firestore';
 
 interface Game {
     id: string;
     name: string;
     status: 'Not Started' | 'In Progress' | 'Completed';
     holes: 9 | 18;
-    teamsCount: number;
+    teams: string[];
     createdAt: any;
 }
 
@@ -25,7 +24,6 @@ interface Team {
 }
 
 export default function ScorekeeperDashboard() {
-  const [open, setOpen] = useState(false);
   const [games, setGames] = useState<Game[]>([]);
   const [latestTeam, setLatestTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,23 +33,35 @@ export default function ScorekeeperDashboard() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // Fetch games
-            const gamesCollection = collection(db, 'games');
-            const gamesQuery = query(gamesCollection, orderBy('createdAt', 'desc'));
-            const gameSnapshot = await getDocs(gamesQuery);
-            const gamesList = gameSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Game));
-            setGames(gamesList);
-
             // Fetch the most recently created team
+            // In a real app with user auth, you'd fetch the team for the current user.
             const teamsCollection = collection(db, "teams");
-            // Assuming there's a timestamp field, if not, this will not work as expected
-            // For now, let's just get the first one we find. A proper implementation would need a timestamp.
-             const teamsQuery = query(teamsCollection, limit(1)); // simplified for now
-             const teamSnapshot = await getDocs(teamsQuery);
-             if (!teamSnapshot.empty) {
+            const teamsQuery = query(teamsCollection, limit(1)); // Simplified for now
+            const teamSnapshot = await getDocs(teamsQuery);
+
+            let team: Team | null = null;
+            if (!teamSnapshot.empty) {
                 const teamDoc = teamSnapshot.docs[0];
-                setLatestTeam({ id: teamDoc.id, ...teamDoc.data() } as Team);
-             }
+                team = { id: teamDoc.id, ...teamDoc.data() } as Team;
+                setLatestTeam(team);
+            }
+
+            // Fetch games for that specific team
+            if (team) {
+                const gamesCollection = collection(db, 'games');
+                const gamesQuery = query(
+                    gamesCollection,
+                    where('teams', 'array-contains', team.id),
+                    orderBy('createdAt', 'desc')
+                );
+                const gameSnapshot = await getDocs(gamesQuery);
+                const gamesList = gameSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    teamsCount: doc.data().teams.length
+                } as Game));
+                setGames(gamesList);
+            }
 
         } catch (error) {
             console.error("Error fetching data: ", error);
@@ -71,7 +81,6 @@ export default function ScorekeeperDashboard() {
             teamsCount: 0,
             createdAt: serverTimestamp()
         });
-        setOpen(false);
         // This assumes we want to score for the latest team. 
         // A real implementation might need a team selection step.
         if(latestTeam) {
@@ -79,7 +88,8 @@ export default function ScorekeeperDashboard() {
         } else {
              router.push(`/register`); // Or show a message to register a team first
         }
-    } catch (error) {
+    } catch (error)
+     {
         console.error("Error starting new game: ", error);
     }
   };
@@ -97,6 +107,7 @@ export default function ScorekeeperDashboard() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
       ) : (
+        <>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Team Members Card */}
             <Card className="lg:col-span-1 bg-card/50 backdrop-blur-lg border-white/20">
@@ -125,7 +136,7 @@ export default function ScorekeeperDashboard() {
                         <div className="flex justify-between items-center text-sm text-muted-foreground">
                             <div className="flex items-center">
                             <Users className="mr-1 h-4 w-4" />
-                            {mostRecentGame.teamsCount} Teams
+                            {mostRecentGame.teams.length} Teams
                             </div>
                              <Badge variant={
                                 mostRecentGame.status === 'In Progress' ? 'default' :
@@ -171,6 +182,7 @@ export default function ScorekeeperDashboard() {
                 </CardContent>
             </Card>
         </div>
+        </>
       )}
     </>
   );
