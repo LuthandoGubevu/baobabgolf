@@ -55,16 +55,24 @@ export default function LoginPage() {
         });
         if (userData.role === 'scorekeeper') {
           router.push('/scorekeeper');
-        } else {
+        } else if (userData.role === 'spectator') {
           router.push('/spectator');
+        } else {
+           // This case should ideally not happen if registration is complete
+           toast({
+            title: "Error",
+            description: "User role is not defined. Please contact support.",
+            variant: "destructive",
+          });
+           router.push('/');
         }
       } else {
          toast({
           title: "Registration Incomplete",
-          description: "Your user role is not set. Please complete your registration.",
+          description: "Please complete your registration to continue.",
           variant: "destructive",
         });
-        // Don't sign out, just redirect to let them finish.
+        // Keep the user logged in and redirect to signup to complete their profile
         router.push('/auth/signup');
       }
 
