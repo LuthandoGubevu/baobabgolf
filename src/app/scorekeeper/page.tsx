@@ -90,93 +90,91 @@ export default function ScorekeeperDashboard() {
   const mostRecentGame = games.length > 0 ? games[0] : null;
 
   return (
-    <>
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    loading ? (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    ) : (
+      <>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
         </div>
-      ) : (
-        <>
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {/* Team Members Card */}
-              <Card className="lg:col-span-1 bg-card/50 backdrop-blur-lg border-white/20">
-                  <CardHeader>
-                      <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Team Overview</CardTitle>
-                      {userTeam ? <CardDescription>{userTeam.teamName}</CardDescription> : <CardDescription>No team found. Register one first!</CardDescription>}
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                      {userTeam?.players.map((player) => (
-                           <div key={player} className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              <span>{player}</span>
-                          </div>
-                      ))}
-                      {!userTeam && <Button onClick={() => router.push('/auth/signup')}>Register a Team</Button>}
-                  </CardContent>
-              </Card>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {/* Team Members Card */}
+            <Card className="lg:col-span-1 bg-card/50 backdrop-blur-lg border-white/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Team Overview</CardTitle>
+                    {userTeam ? <CardDescription>{userTeam.teamName}</CardDescription> : <CardDescription>No team found. Register one first!</CardDescription>}
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {userTeam?.players.map((player) => (
+                         <div key={player} className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span>{player}</span>
+                        </div>
+                    ))}
+                    {!userTeam && <Button onClick={() => router.push('/auth/signup')}>Register a Team</Button>}
+                </CardContent>
+            </Card>
 
-              {/* Most Recent Game Card */}
-              <Card className="lg:col-span-2 bg-card/50 backdrop-blur-lg border-white/20">
-                  <CardHeader>
-                      <CardTitle className="flex items-center gap-2"><Info className="h-5 w-5" /> Most Recent Game</CardTitle>
-                      {mostRecentGame ? <CardDescription>{mostRecentGame.name}</CardDescription> : <CardDescription>No games started yet.</CardDescription>}
-                  </CardHeader>
-                  {mostRecentGame && (
-                       <CardContent>
-                          <div className="flex justify-between items-center text-sm text-muted-foreground">
-                              <div className="flex items-center">
-                              <Users className="mr-1 h-4 w-4" />
-                              {mostRecentGame.teamsCount} Team(s)
-                              </div>
-                               <Badge variant={
-                                  mostRecentGame.status === 'In Progress' ? 'default' :
-                                  mostRecentGame.status === 'Completed' ? 'secondary' : 'outline'
-                                  }>{mostRecentGame.status}</Badge>
-                          </div>
-                       </CardContent>
-                  )}
-                   <CardFooter>
-                      {mostRecentGame && userTeam ? (
-                          <Button className="w-full" onClick={() => router.push(`/scorekeeper/team/${userTeam.id}`)}>
-                              <Play className="mr-2 h-4 w-4" />
-                              {mostRecentGame.status === 'In Progress' ? 'Continue Scoring' : 'View Game'}
-                          </Button>
-                      ) : (
-                           <Button className="w-full" onClick={() => router.push('/scorekeeper/new-game')} disabled={!userTeam}>
-                              <PlusCircle className="mr-2 h-4 w-4" />
-                              Start Your First Game
-                          </Button>
-                      )}
-                  </CardFooter>
-              </Card>
-              
-              {/* Team Stats */}
-              <Card className="bg-card/50 backdrop-blur-lg border-white/20">
-                  <CardHeader>
-                      <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Team Stats</CardTitle>
-                      <CardDescription>Performance metrics for your team.</CardDescription>
-                  </Header>
-                   <CardContent className="text-center text-muted-foreground">
-                      <p>Coming Soon</p>
-                  </CardContent>
-              </Card>
-              
-              {/* Best Game */}
-              <Card className="bg-card/50 backdrop-blur-lg border-white/20">
-                  <CardHeader>
-                      <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Best Game</CardTitle>
-                      <CardDescription>Highlight of your team's top performance.</CardDescription>
-                  </Header>
-                  <CardContent className="text-center text-muted-foreground">
-                      <p>Coming Soon</p>
-                  </CardContent>
-              </Card>
-          </div>
-        </>
-      )}
-    </>
+            {/* Most Recent Game Card */}
+            <Card className="lg:col-span-2 bg-card/50 backdrop-blur-lg border-white/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Info className="h-5 w-5" /> Most Recent Game</CardTitle>
+                    {mostRecentGame ? <CardDescription>{mostRecentGame.name}</CardDescription> : <CardDescription>No games started yet.</CardDescription>}
+                </CardHeader>
+                {mostRecentGame && (
+                     <CardContent>
+                        <div className="flex justify-between items-center text-sm text-muted-foreground">
+                            <div className="flex items-center">
+                            <Users className="mr-1 h-4 w-4" />
+                            {mostRecentGame.teamsCount} Team(s)
+                            </div>
+                             <Badge variant={
+                                mostRecentGame.status === 'In Progress' ? 'default' :
+                                mostRecentGame.status === 'Completed' ? 'secondary' : 'outline'
+                                }>{mostRecentGame.status}</Badge>
+                        </div>
+                     </CardContent>
+                )}
+                 <CardFooter>
+                    {mostRecentGame && userTeam ? (
+                        <Button className="w-full" onClick={() => router.push(`/scorekeeper/team/${userTeam.id}`)}>
+                            <Play className="mr-2 h-4 w-4" />
+                            {mostRecentGame.status === 'In Progress' ? 'Continue Scoring' : 'View Game'}
+                        </Button>
+                    ) : (
+                         <Button className="w-full" onClick={() => router.push('/scorekeeper/new-game')} disabled={!userTeam}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Start Your First Game
+                        </Button>
+                    )}
+                </CardFooter>
+            </Card>
+            
+            {/* Team Stats */}
+            <Card className="bg-card/50 backdrop-blur-lg border-white/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Team Stats</CardTitle>
+                    <CardDescription>Performance metrics for your team.</CardDescription>
+                </Header>
+                 <CardContent className="text-center text-muted-foreground">
+                    <p>Coming Soon</p>
+                </CardContent>
+            </Card>
+            
+            {/* Best Game */}
+            <Card className="bg-card/50 backdrop-blur-lg border-white/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Best Game</CardTitle>
+                    <CardDescription>Highlight of your team's top performance.</CardDescription>
+                </Header>
+                <CardContent className="text-center text-muted-foreground">
+                    <p>Coming Soon</p>
+                </CardContent>
+            </Card>
+        </div>
+      </>
+    )
   );
 }
