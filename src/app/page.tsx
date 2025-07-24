@@ -40,9 +40,9 @@ export default function Home() {
             </Link>
 
             <div className="flex items-center w-full py-2">
-              <Separator className="flex-grow bg-border" />
-              <span className="px-4 text-sm text-muted-foreground">OR</span>
-              <Separator className="flex-grow bg-border" />
+              <Separator className="flex-1" />
+              <span className="px-4 text-xs uppercase text-muted-foreground">Or</span>
+              <Separator className="flex-1" />
             </div>
 
             <Link href="/register" passHref>
