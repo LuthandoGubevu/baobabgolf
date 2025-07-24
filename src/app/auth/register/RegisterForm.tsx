@@ -22,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db } from "@/lib/firebase";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { addDoc, collection, doc, getDocs, query, setDoc, where } from "firebase/firestore";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -110,7 +110,36 @@ export default function RegisterForm() {
           }
       }
 
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      let userCredential;
+      try {
+        userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      } catch (error: any) {
+        if (error.code === 'auth/email-already-in-use') {
+          // This might be an incomplete registration. Try to sign in and check for a user document.
+          try {
+            userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+            const userDoc = await getDocs(query(collection(db, "users"), where("uid", "==", userCredential.user.uid)));
+            if (!userDoc.empty) {
+              // User is fully registered.
+              toast({ title: "Error", description: "This email is already registered. Please log in.", variant: "destructive" });
+              router.push('/auth/login');
+              return;
+            }
+            // If userDoc is empty, it's an incomplete registration, so we proceed.
+          } catch (signInError: any) {
+             toast({ title: "Registration Failed", description: signInError.message, variant: "destructive"});
+             return;
+          }
+        } else {
+          throw error; // Re-throw other auth errors
+        }
+      }
+
+      if (!userCredential) {
+          toast({ title: "Registration Failed", description: "Could not create or verify user.", variant: "destructive"});
+          return;
+      }
+
       const user = userCredential.user;
 
       if (role === 'scorekeeper' && 'teamName' in values && 'playerB' in values && 'playerC' in values && 'playerD' in values) {
@@ -290,3 +319,5 @@ export default function RegisterForm() {
     </div>
   );
 }
+
+    
