@@ -51,20 +51,19 @@ export default function LoginPage() {
         const userData = userDoc.data();
         toast({
           title: "Login Successful!",
-          description: "Welcome back!",
+          description: "Welcome back! Redirecting...",
         });
         if (userData.role === 'scorekeeper') {
           router.push('/scorekeeper');
         } else if (userData.role === 'spectator') {
           router.push('/spectator');
         } else {
-           // This case should ideally not happen if registration is complete
            toast({
             title: "Error",
-            description: "User role is not defined. Please contact support.",
+            description: "User role not defined. Please complete your registration.",
             variant: "destructive",
           });
-           router.push('/');
+           router.push('/auth/signup');
         }
       } else {
          toast({
@@ -72,7 +71,6 @@ export default function LoginPage() {
           description: "Please complete your registration to continue.",
           variant: "destructive",
         });
-        // Keep the user logged in and redirect to signup to complete their profile
         router.push('/auth/signup');
       }
 
