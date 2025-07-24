@@ -25,36 +25,38 @@ import { db } from "@/lib/firebase";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { addDoc, collection, doc, getDocs, query, setDoc, where } from "firebase/firestore";
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
 
-// Base schema for common fields
-const baseSchema = z.object({
-  role: z.enum(["scorekeeper", "spectator"], { required_error: "You must select a role." }),
+const scorekeeperSchema = z.object({
+  role: z.literal("scorekeeper"),
   fullName: z.string().min(2, "Full name must be at least 2 characters."),
   email: z.string().email("Invalid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
   confirmPassword: z.string(),
   terms: z.boolean().default(false).refine(val => val === true, "You must accept the terms."),
-});
-
-// Scorekeeper specific fields
-const scorekeeperFields = z.object({
   teamName: z.string().min(2, "Team name must be at least 2 characters."),
   playerB: z.string().min(2, "Player name must be at least 2 characters."),
   playerC: z.string().min(2, "Player name must be at least 2 characters."),
   playerD: z.string().min(2, "Player name must be at least 2 characters."),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
-// Combined schema with conditional validation
+const spectatorSchema = z.object({
+  role: z.literal("spectator"),
+  fullName: z.string().min(2, "Full name must be at least 2 characters."),
+  email: z.string().email("Invalid email address."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
+  confirmPassword: z.string(),
+  terms: z.boolean().default(false).refine(val => val === true, "You must accept the terms."),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
 const formSchema = z.discriminatedUnion("role", [
-    baseSchema.extend(scorekeeperFields).refine(data => data.password === data.confirmPassword, {
-        message: "Passwords don't match",
-        path: ["confirmPassword"],
-    }),
-    baseSchema.refine(data => data.password === data.confirmPassword, {
-        message: "Passwords don't match",
-        path: ["confirmPassword"],
-    })
+  scorekeeperSchema,
+  spectatorSchema,
 ]);
 
 
@@ -71,6 +73,7 @@ export default function RegisterForm() {
       password: "",
       confirmPassword: "",
       terms: false,
+      role: undefined,
     },
   });
 
@@ -94,17 +97,20 @@ export default function RegisterForm() {
       } catch (error: any) {
         if (error.code === 'auth/email-already-in-use') {
           try {
+            // Attempt to sign in to see if it's a partially registered user
             userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
             const userDocQuery = query(collection(db, "users"), where("uid", "==", userCredential.user.uid));
             const userDocSnapshot = await getDocs(userDocQuery);
-
+            
+            // If user doc exists, they are fully registered.
             if (!userDocSnapshot.empty) {
               toast({ title: "Error", description: "This email is already registered. Please log in.", variant: "destructive" });
               router.push('/auth/login');
               return;
             }
+            // If user doc doesn't exist, it's a partially registered user, so we can proceed.
           } catch (signInError: any) {
-             toast({ title: "Registration Failed", description: signInError.message, variant: "destructive"});
+             toast({ title: "Registration Failed", description: "This email is already in use or the password you entered is incorrect.", variant: "destructive"});
              return;
           }
         } else {
@@ -118,6 +124,12 @@ export default function RegisterForm() {
       }
 
       const user = userCredential.user;
+      
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        role: values.role,
+        fullName: values.fullName,
+      });
 
       if (values.role === 'scorekeeper') {
         const teamRef = await addDoc(collection(db, "teams"), {
@@ -126,19 +138,10 @@ export default function RegisterForm() {
           scorekeeperId: user.uid,
           scores: {},
         });
-        await setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          role: 'scorekeeper',
-          teamId: teamRef.id,
-          fullName: values.fullName,
-        });
+        // Update user doc with teamId
+         await setDoc(doc(db, "users", user.uid), { teamId: teamRef.id }, { merge: true });
         router.push('/scorekeeper');
       } else { // Spectator
-        await setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          role: 'spectator',
-          fullName: values.fullName,
-        });
         router.push('/spectator');
       }
        toast({ title: "Registration Successful!", description: "Welcome to Baobab Golf." });
@@ -313,3 +316,5 @@ export default function RegisterForm() {
     </div>
   );
 }
+
+    
