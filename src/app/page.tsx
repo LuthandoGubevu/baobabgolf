@@ -18,7 +18,7 @@ export default function Home() {
       
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-primary-foreground p-4 w-full max-w-sm mx-auto text-center">
         <main className="flex flex-col items-center space-y-8 w-full">
-            <Image src="/logo.png" alt="Baobab Golf Logo" width={200} height={40} className="w-full max-w-[200px] h-auto" />
+            <Image src="/logo.png" alt="Baobab Golf Logo" width={100} height={20} className="w-full max-w-[100px] h-auto" />
             <div className="space-y-2">
                 <h1 className="text-4xl sm:text-5xl font-bold tracking-tight font-headline">
                 Baobab Golf
