@@ -22,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { addDoc, collection, doc, getDocs, query, setDoc, where } from "firebase/firestore";
 import { ArrowLeft } from "lucide-react";
 
@@ -122,11 +122,12 @@ export default function SignupPage() {
         });
         // Update user doc with teamId
          await setDoc(doc(db, "users", user.uid), { teamId: teamRef.id }, { merge: true });
-        router.push('/scorekeeper');
+         toast({ title: "Registration Successful!", description: "Welcome to Baobab Golf." });
+         router.push('/scorekeeper');
       } else { // Spectator
-        router.push('/spectator');
+         toast({ title: "Registration Successful!", description: "Welcome to Baobab Golf." });
+         router.push('/spectator');
       }
-       toast({ title: "Registration Successful!", description: "Welcome to Baobab Golf." });
 
     } catch (error: any) {
       console.error("Registration Error: ", error);
