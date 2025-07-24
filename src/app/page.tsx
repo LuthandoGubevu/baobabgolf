@@ -20,7 +20,7 @@ export default function Home() {
         <main className="flex flex-col items-center space-y-8 w-full">
             <Image src="/logo.png" alt="Baobab Golf Logo" width={64} height={64} className="h-16 w-auto" />
             <div className="space-y-2">
-                <h1 className="text-4xl font-bold tracking-tight md:text-5xl font-headline">
+                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight font-headline">
                 Baobab Golf
                 </h1>
                 <p className="text-lg text-muted-foreground">
@@ -29,12 +29,12 @@ export default function Home() {
             </div>
           <div className="w-full space-y-4">
              <Link href="/scorekeeper" passHref>
-              <Button size="lg" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg py-6">
+              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                 Scorekeeper: Start Game
               </Button>
             </Link>
              <Link href="/spectator" passHref>
-              <Button size="lg" variant="outline" className="w-full bg-input text-lg py-6 border-input">
+              <Button variant="secondary" className="w-full">
                 Spectator Dashboard
               </Button>
             </Link>
@@ -46,7 +46,7 @@ export default function Home() {
             </div>
 
             <Link href="/register" passHref>
-                <Button size="lg" variant="outline" className="w-full bg-input text-lg py-6 border-input">
+                <Button variant="outline" className="w-full">
                     Register New Team
                 </Button>
             </Link>
