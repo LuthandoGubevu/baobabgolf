@@ -27,7 +27,7 @@ export default function Home() {
                 Your modern companion for tracking golf scores.
                 </p>
             </div>
-          <div className="w-full space-y-4">
+          <div className="w-full space-y-4 py-4">
              <Link href="/scorekeeper" passHref>
               <Button className="w-full">
                 Scorekeeper: Start Game
