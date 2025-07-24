@@ -18,7 +18,7 @@ export default function Home() {
       
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-primary-foreground p-4 w-full max-w-sm mx-auto text-center">
         <main className="flex flex-col items-center space-y-8 w-full">
-            <Image src="/logo.png" alt="Baobab Golf Logo" width={64} height={64} className="h-16 w-auto" />
+            <Image src="/logo.png" alt="Baobab Golf Logo" width={500} height={100} className="w-full max-w-[500px] h-auto" />
             <div className="space-y-2">
                 <h1 className="text-4xl sm:text-5xl font-bold tracking-tight font-headline">
                 Baobab Golf
@@ -29,7 +29,7 @@ export default function Home() {
             </div>
           <div className="w-full space-y-4">
              <Link href="/scorekeeper" passHref>
-              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button className="w-full">
                 Scorekeeper: Start Game
               </Button>
             </Link>
