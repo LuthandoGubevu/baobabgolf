@@ -64,7 +64,7 @@ export default function LoginPage() {
           description: "Your user role is not set. Please complete your registration.",
           variant: "destructive",
         });
-        await auth.signOut();
+        // Don't sign out, just redirect to let them finish.
         router.push('/auth/signup');
       }
 
