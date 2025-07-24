@@ -2,30 +2,68 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, getDocs, limit, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from 'react';
+
+interface Team {
+    id: string;
+    name: string;
+}
 
 export default function NewGamePage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [latestTeam, setLatestTeam] = useState<Team | null>(null);
+
+  useEffect(() => {
+    const fetchLatestTeam = async () => {
+        try {
+            const teamsCollection = collection(db, "teams");
+            // This is a simplified query. A real app would need a timestamp or a way to associate teams with users.
+            const teamsQuery = query(teamsCollection, limit(1)); 
+            const teamSnapshot = await getDocs(teamsQuery);
+            if (!teamSnapshot.empty) {
+                const teamDoc = teamSnapshot.docs[0];
+                setLatestTeam({ id: teamDoc.id, ...teamDoc.data() } as Team);
+            }
+        } catch (error) {
+            console.error("Error fetching latest team:", error);
+            toast({
+                title: 'Error',
+                description: 'Could not find a registered team.',
+                variant: 'destructive',
+            });
+        }
+    };
+    fetchLatestTeam();
+  }, [toast]);
 
   const handleStartGame = async (holes: 9 | 18) => {
+    if (!latestTeam) {
+        toast({
+            title: 'No Team Found',
+            description: "Please register a team before starting a game.",
+            variant: 'destructive'
+        });
+        router.push('/register');
+        return;
+    }
+
     try {
         await addDoc(collection(db, 'games'), {
             name: `New ${holes}-Hole Game`,
             status: 'Not Started',
             holes: holes,
-            teamsCount: 0,
+            teams: [latestTeam.id], // Storing team ID with the game
             createdAt: serverTimestamp()
         });
         toast({
           title: 'Game Created!',
-          description: `A new ${holes}-hole game has been started.`,
+          description: `A new ${holes}-hole game has been started for ${latestTeam.name}.`,
         });
-        // A real app would likely have a lobby or team selection screen next.
-        // For now, we'll redirect to the main scorekeeper dashboard.
-        router.push(`/scorekeeper`);
+        router.push(`/scorekeeper/team/${latestTeam.id}`);
     } catch (error) {
         console.error("Error starting new game: ", error);
          toast({
@@ -43,7 +81,7 @@ export default function NewGamePage() {
         <CardHeader>
           <CardTitle>Choose Game Length</CardTitle>
           <CardDescription>
-            Select the number of holes for the new game. This will create a new game session for all registered teams.
+            Select the number of holes for the new game. This will create a new game session for your team.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
