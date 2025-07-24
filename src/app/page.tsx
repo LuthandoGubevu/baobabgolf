@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { HopeLogo } from '@/components/icons';
 import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
@@ -18,8 +17,8 @@ export default function Home() {
       <div className="absolute inset-0 bg-background/80" />
       
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-primary-foreground p-4 w-full max-w-sm mx-auto">
-        <main className="flex flex-col items-center space-y-8 w-full">
-            <HopeLogo className="h-16 w-auto" />
+        <main className="flex flex-col items-center space-y-8 w-full text-center">
+            <Image src="/logo.png" alt="Baobab Golf Logo" width={64} height={64} className="h-16 w-auto" />
             <div className="space-y-2">
                 <h1 className="text-4xl font-bold tracking-tight md:text-5xl font-headline">
                 Baobab Golf
