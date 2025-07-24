@@ -15,7 +15,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +24,10 @@ import { db } from "@/lib/firebase";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { addDoc, collection, doc, getDocs, query, setDoc, where } from "firebase/firestore";
 import { ArrowLeft } from "lucide-react";
+
+type RegisterFormProps = {
+    role: 'scorekeeper' | 'spectator';
+}
 
 const scorekeeperSchema = z.object({
   role: z.literal("scorekeeper"),
@@ -54,30 +57,35 @@ const spectatorSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const formSchema = z.discriminatedUnion("role", [
-  scorekeeperSchema,
-  spectatorSchema,
-]);
+const schemaMap = {
+    scorekeeper: scorekeeperSchema,
+    spectator: spectatorSchema
+}
 
-
-export default function RegisterForm() {
+export default function RegisterForm({ role }: RegisterFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const auth = getAuth();
+  const formSchema = schemaMap[role];
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      role: role,
       fullName: "",
       email: "",
       password: "",
       confirmPassword: "",
       terms: false,
-      role: "spectator",
+       ...(role === 'scorekeeper' && {
+        teamName: '',
+        playerB: '',
+        playerC: '',
+        playerD: '',
+      }),
     },
   });
 
-  const role = form.watch("role");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -168,16 +176,16 @@ export default function RegisterForm() {
       <div className="absolute inset-0 bg-background/90" />
       <div className="absolute top-4 left-4 z-10">
         <Button variant="ghost" asChild>
-          <Link href="/">
+          <Link href="/auth/signup">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
+            Back to Role Selection
           </Link>
         </Button>
       </div>
       <Card className="w-full max-w-2xl bg-card/50 backdrop-blur-lg border-white/20 z-10">
         <CardHeader>
           <CardTitle className="text-center text-3xl font-bold font-headline">
-            Create Your Account
+            Create Your {role === 'scorekeeper' ? 'Scorekeeper' : 'Spectator'} Account
           </CardTitle>
           <CardDescription className="text-center text-muted-foreground">
             Fill out the form to get started.
@@ -186,47 +194,7 @@ export default function RegisterForm() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-             <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>Choose your role</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-col md:flex-row gap-4"
-                      >
-                        <FormItem className="flex items-center space-x-3 space-y-0 flex-1 border rounded-md p-4 has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
-                          <FormControl>
-                            <RadioGroupItem value="scorekeeper" />
-                          </FormControl>
-                          <FormLabel className="font-normal">
-                            Scorekeeper
-                            <FormDescription className="text-xs">
-                                I am a player and will be entering scores for my team.
-                            </FormDescription>
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0 flex-1 border rounded-md p-4 has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
-                          <FormControl>
-                            <RadioGroupItem value="spectator" />
-                          </FormControl>
-                          <FormLabel className="font-normal">
-                           Spectator
-                            <FormDescription className="text-xs">
-                                I want to watch the game, follow leaderboards, and chat.
-                            </FormDescription>
-                          </FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <FormField control={form.control} name="fullName" render={({ field }) => (
                     <FormItem>
