@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import {Suspense} from 'react'
 import RegisterForm from './RegisterForm'
 import { useSearchParams } from 'next/navigation'
@@ -14,7 +14,7 @@ function RegisterPageContents() {
 
     if (role !== 'scorekeeper' && role !== 'spectator') {
         return (
-            <div className="min-h-screen flex items-center justify-center p-4 relative">
+             <div className="min-h-screen flex items-center justify-center p-4 relative">
                  <Image
                     src="/hole-in-one.jpg"
                     alt="A golf course background"
@@ -33,14 +33,14 @@ function RegisterPageContents() {
                 </div>
                 <Card className="w-full max-w-lg bg-card/50 backdrop-blur-lg border-white/20 z-10 text-center">
                     <CardHeader>
-                        <CardTitle>Invalid Role</CardTitle>
+                        <CardTitle>Please start from the beginning</CardTitle>
                          <CardDescription>
-                            Please select a role to continue registration.
+                            To sign up, please go to our sign up page.
                          </CardDescription>
                     </CardHeader>
                     <CardContent>
                        <Button asChild>
-                         <Link href="/auth/signup">Choose Role</Link>
+                         <Link href="/auth/signup">Go to Sign Up</Link>
                        </Button>
                     </CardContent>
                 </Card>
