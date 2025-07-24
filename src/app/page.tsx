@@ -7,17 +7,17 @@ export default function Home() {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-hidden text-center">
       <Image
-        src="https://placehold.co/1920x1080.png"
-        alt="A close up of a golf putter"
-        data-ai-hint="golf club dark"
+        src="/hole-in-one.jpg"
+        alt="A dramatic shot of a golf ball on the green near the hole"
+        data-ai-hint="golf course green"
         fill
         className="object-cover"
         priority
       />
       <div className="absolute inset-0 bg-background/80" />
       
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-primary-foreground p-4 w-full max-w-sm mx-auto">
-        <main className="flex flex-col items-center space-y-8 w-full text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-primary-foreground p-4 w-full max-w-sm mx-auto text-center">
+        <main className="flex flex-col items-center space-y-8 w-full">
             <Image src="/logo.png" alt="Baobab Golf Logo" width={64} height={64} className="h-16 w-auto" />
             <div className="space-y-2">
                 <h1 className="text-4xl font-bold tracking-tight md:text-5xl font-headline">
