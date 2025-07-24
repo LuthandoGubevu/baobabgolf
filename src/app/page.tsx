@@ -18,7 +18,7 @@ export default function Home() {
       
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-primary-foreground p-4 w-full max-w-sm mx-auto">
         <main className="flex flex-col items-center space-y-8 w-full">
-            <Image src="/logo.png" alt="Baobab Golf Logo" width={180} height={36} className="w-full max-w-[180px] h-auto" />
+            <Image src="/logo.png" alt="Baobab Golf Logo" width={220} height={44} className="w-full max-w-[220px] h-auto" />
             <div className="space-y-2">
                 <h1 className="text-4xl sm:text-5xl font-bold tracking-tight font-headline">
                 Baobab Golf
@@ -34,7 +34,7 @@ export default function Home() {
               </Button>
             </Link>
              <Link href="/auth/signup" passHref>
-              <Button variant="secondary" className="w-full">
+              <Button variant="secondary" className="w-full mt-4">
                 Sign Up
               </Button>
             </Link>
