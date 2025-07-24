@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-hidden">
+    <div className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-hidden text-center">
       <Image
         src="https://placehold.co/1920x1080.png"
         alt="A close up of a golf putter"
@@ -17,7 +17,7 @@ export default function Home() {
       />
       <div className="absolute inset-0 bg-background/80" />
       
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center text-primary-foreground p-4 w-full max-w-sm mx-auto">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-primary-foreground p-4 w-full max-w-sm mx-auto">
         <main className="flex flex-col items-center space-y-8 w-full">
             <HopeLogo className="h-16 w-auto" />
             <div className="space-y-2">
