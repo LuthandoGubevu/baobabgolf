@@ -157,7 +157,7 @@ export default function ScorekeeperDashboard() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Team Stats</CardTitle>
                     <CardDescription>Performance metrics for your team.</CardDescription>
-                </Header>
+                </CardHeader>
                  <CardContent className="text-center text-muted-foreground">
                     <p>Coming Soon</p>
                 </CardContent>
