@@ -14,7 +14,7 @@ export default function LeaderboardPage() {
   return (
     <div className="space-y-6">
        <h1 className="text-3xl font-bold font-headline">Leaderboard</h1>
-        <Card>
+        <Card className="bg-card/50 backdrop-blur-lg border-white/20">
             <CardHeader>
             <CardTitle>Overall Rankings</CardTitle>
             <CardDescription>See how teams stack up against each other in the tournament.</CardDescription>

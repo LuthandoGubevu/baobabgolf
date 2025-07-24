@@ -142,7 +142,7 @@ export default function TeamScoringPage() {
   if (loading) {
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
-            <Card>
+            <Card className="bg-card/50 backdrop-blur-lg border-white/20">
                 <CardHeader>
                     <Skeleton className="h-8 w-1/2" />
                     <Skeleton className="h-4 w-3/4" />
@@ -151,7 +151,7 @@ export default function TeamScoringPage() {
                     <Skeleton className="h-48 w-full" />
                 </CardContent>
             </Card>
-             <Card>
+             <Card className="bg-card/50 backdrop-blur-lg border-white/20">
                 <CardHeader>
                      <Skeleton className="h-8 w-1/3" />
                 </CardHeader>
@@ -172,7 +172,7 @@ export default function TeamScoringPage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <Card>
+      <Card className="bg-card/50 backdrop-blur-lg border-white/20">
         <CardHeader>
             <CardTitle className="flex justify-between items-start">
                 <div>
@@ -186,7 +186,7 @@ export default function TeamScoringPage() {
             </CardTitle>
         </CardHeader>
       </Card>
-      <Card>
+      <Card className="bg-card/50 backdrop-blur-lg border-white/20">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className='flex items-center gap-4'>
@@ -244,7 +244,7 @@ export default function TeamScoringPage() {
         </CardFooter>
       </Card>
 
-      <Card>
+      <Card className="bg-card/50 backdrop-blur-lg border-white/20">
         <CardHeader>
           <CardTitle>Overall Summary</CardTitle>
         </CardHeader>

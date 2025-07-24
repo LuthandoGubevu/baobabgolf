@@ -99,7 +99,7 @@ export default function ScorekeeperDashboard() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Team Members Card */}
-            <Card className="lg:col-span-1">
+            <Card className="lg:col-span-1 bg-card/50 backdrop-blur-lg border-white/20">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Team Overview</CardTitle>
                     {latestTeam ? <CardDescription>{latestTeam.name}</CardDescription> : <CardDescription>No team found. Register one first!</CardDescription>}
@@ -115,7 +115,7 @@ export default function ScorekeeperDashboard() {
             </Card>
 
             {/* Most Recent Game Card */}
-            <Card className="lg:col-span-2">
+            <Card className="lg:col-span-2 bg-card/50 backdrop-blur-lg border-white/20">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Info className="h-5 w-5" /> Most Recent Game</CardTitle>
                     {mostRecentGame ? <CardDescription>{mostRecentGame.name}</CardDescription> : <CardDescription>No games started yet.</CardDescription>}
@@ -150,7 +150,7 @@ export default function ScorekeeperDashboard() {
             </Card>
             
             {/* Team Stats */}
-            <Card>
+            <Card className="bg-card/50 backdrop-blur-lg border-white/20">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Team Stats</CardTitle>
                     <CardDescription>Performance metrics for your team.</CardDescription>
@@ -161,7 +161,7 @@ export default function ScorekeeperDashboard() {
             </Card>
             
             {/* Best Game */}
-            <Card>
+            <Card className="bg-card/50 backdrop-blur-lg border-white/20">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Best Game</CardTitle>
                     <CardDescription>Highlight of your team's top performance.</CardDescription>
