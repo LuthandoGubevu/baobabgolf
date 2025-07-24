@@ -73,7 +73,7 @@ export default function RegisterForm() {
       password: "",
       confirmPassword: "",
       terms: false,
-      role: undefined,
+      role: "spectator",
     },
   });
 
