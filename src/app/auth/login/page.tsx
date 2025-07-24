@@ -49,24 +49,37 @@ export default function LoginPage() {
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        toast({
+          title: "Login Successful!",
+          description: "Welcome back!",
+        });
         if (userData.role === 'scorekeeper') {
           router.push('/scorekeeper');
         } else {
           router.push('/spectator');
         }
       } else {
-        throw new Error("User role not found.");
+         toast({
+          title: "Registration Incomplete",
+          description: "Your user role is not set. Please complete your registration.",
+          variant: "destructive",
+        });
+        await auth.signOut();
+        router.push('/auth/signup');
       }
-       toast({
-        title: "Login Successful!",
-        description: "Welcome back!",
-      });
 
-    } catch (error: any) {
+    } catch (error: any)
+      {
       console.error("Login Error:", error);
+      let description = "Please check your credentials and try again.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        description = "Invalid email or password. Please try again.";
+      } else {
+        description = error.message;
+      }
       toast({
         title: "Login Failed",
-        description: error.message || "Please check your credentials and try again.",
+        description: description,
         variant: "destructive",
       });
     }
