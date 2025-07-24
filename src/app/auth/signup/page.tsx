@@ -32,30 +32,18 @@ export default function SignupRoleSelectionPage() {
         <CardHeader>
           <CardTitle className="text-center text-3xl font-bold font-headline">Join Baobab Golf</CardTitle>
           <CardDescription className="text-center text-muted-foreground">
-            First, tell us who you are. Choose your role to get started.
+            Register to become a scorekeeper or spectator.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardContent className="grid grid-cols-1 gap-6">
             <Button 
-              variant="outline" 
               className="h-auto flex-col gap-4 py-8"
-              onClick={() => router.push('/auth/register?role=scorekeeper')}
+              onClick={() => router.push('/auth/register')}
             >
                 <Users className="h-10 w-10 text-primary" />
                 <div className="text-center">
-                    <p className="font-semibold text-lg">Scorekeeper</p>
-                    <p className="text-xs text-muted-foreground">I am a player and will be entering scores for my team.</p>
-                </div>
-            </Button>
-             <Button 
-              variant="outline" 
-              className="h-auto flex-col gap-4 py-8"
-              onClick={() => router.push('/auth/register?role=spectator')}
-             >
-                <User className="h-10 w-10 text-primary" />
-                <div className="text-center">
-                    <p className="font-semibold text-lg">Spectator</p>
-                    <p className="text-xs text-muted-foreground">I want to watch the game, follow leaderboards, and chat.</p>
+                    <p className="font-semibold text-lg">Get Started</p>
+                    <p className="text-xs text-muted-foreground">Create an account to track scores or watch the game.</p>
                 </div>
             </Button>
         </CardContent>
