@@ -89,8 +89,7 @@ export default function ScorekeeperDashboard() {
 
   const mostRecentGame = games.length > 0 ? games[0] : null;
 
-  return (
-    loading ? (
+  return loading ? (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
@@ -175,6 +174,5 @@ export default function ScorekeeperDashboard() {
             </Card>
         </div>
       </>
-    )
-  );
+    );
 }
