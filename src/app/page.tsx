@@ -39,7 +39,7 @@ export default function Home() {
               </Button>
             </Link>
 
-            <div className="flex items-center w-full">
+            <div className="flex items-center w-full py-2">
               <Separator className="flex-grow bg-border" />
               <span className="px-4 text-sm text-muted-foreground">OR</span>
               <Separator className="flex-grow bg-border" />
