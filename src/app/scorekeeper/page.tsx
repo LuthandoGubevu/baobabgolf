@@ -167,7 +167,7 @@ export default function ScorekeeperDashboard() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Best Game</CardTitle>
                     <CardDescription>Highlight of your team's top performance.</CardDescription>
-                </Header>
+                </CardHeader>
                 <CardContent className="text-center text-muted-foreground">
                     <p>Coming Soon</p>
                 </CardContent>
