@@ -16,7 +16,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -48,7 +47,6 @@ const spectatorSchema = z.object({
   email: z.string().email("Invalid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
   confirmPassword: z.string(),
-  followTeam: z.string().optional(),
   terms: z.boolean().default(false).refine(val => val === true, "You must accept the terms."),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -63,7 +61,6 @@ export default function RegisterForm() {
   const searchParams = useSearchParams();
   const role = searchParams.get('role');
 
-  const [teams, setTeams] = useState<Team[]>([]);
   const auth = getAuth();
 
   const formSchema = role === 'scorekeeper' ? scorekeeperSchema : spectatorSchema;
@@ -78,21 +75,11 @@ export default function RegisterForm() {
       playerB: "",
       playerC: "",
       playerD: "",
-      followTeam: "",
       terms: false,
     },
   });
 
   useEffect(() => {
-    if (role === 'spectator') {
-      const fetchTeams = async () => {
-        const teamsCollection = collection(db, "teams");
-        const teamSnapshot = await getDocs(teamsCollection);
-        const teamsList = teamSnapshot.docs.map(doc => ({ id: doc.id, name: doc.data().teamName })) as Team[];
-        setTeams(teamsList);
-      };
-      fetchTeams();
-    }
      if (!role) {
       router.push('/auth/signup');
     }
@@ -155,11 +142,10 @@ export default function RegisterForm() {
           fullName: values.fullName,
         });
         router.push('/scorekeeper');
-      } else if (role === 'spectator' && 'followTeam' in values) {
+      } else if (role === 'spectator') {
         await setDoc(doc(db, "users", user.uid), {
           role: 'spectator',
-          teamId: values.followTeam || null,
-           fullName: values.fullName,
+          fullName: values.fullName,
         });
         router.push('/spectator');
       }
@@ -267,31 +253,6 @@ export default function RegisterForm() {
                     />
                   </div>
                 </>
-              )}
-
-              {role === 'spectator' && (
-                <FormField
-                  control={form.control}
-                  name="followTeam"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Follow a Team (Optional)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a team to follow" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {teams.map(team => (
-                            <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               )}
               
               <FormField control={form.control} name="terms"
