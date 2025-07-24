@@ -15,7 +15,7 @@ export default function SpectatorLivePage() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold font-headline">Live Game Tracker</h1>
-      <Card>
+      <Card className="bg-card/50 backdrop-blur-lg border-white/20">
           <CardHeader>
           <CardTitle>Now on the Course</CardTitle>
           <CardDescription>Follow the action as it happens.</CardDescription>

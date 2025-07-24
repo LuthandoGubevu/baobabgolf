@@ -25,7 +25,7 @@ export default function SpectatorDashboard() {
       <h1 className="text-3xl font-bold font-headline">Live Summary</h1>
       <div className="grid gap-8 md:grid-cols-5">
         <div className="md:col-span-3">
-          <Card className="h-full">
+          <Card className="h-full bg-card/50 backdrop-blur-lg border-white/20">
               <CardHeader>
               <CardTitle>Leaderboard</CardTitle>
               <CardDescription>Live standings from across the tournament.</CardDescription>
@@ -61,7 +61,7 @@ export default function SpectatorDashboard() {
         </div>
 
         <div className="md:col-span-2">
-          <Card className="h-full">
+          <Card className="h-full bg-card/50 backdrop-blur-lg border-white/20">
               <CardHeader>
               <CardTitle>Live Game Tracking</CardTitle>
               <CardDescription>Follow the action as it happens on the course.</CardDescription>
