@@ -128,7 +128,7 @@ export default function ScorekeeperDashboard() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Info className="h-5 w-5" /> Most Recent Game</CardTitle>
                     {mostRecentGame ? <CardDescription>{mostRecentGame.name}</CardDescription> : <CardDescription>No games started yet.</CardDescription>}
-                </Header>
+                </CardHeader>
                 {mostRecentGame && (
                      <CardContent>
                         <div className="flex justify-between items-center text-sm text-muted-foreground">
@@ -163,7 +163,7 @@ export default function ScorekeeperDashboard() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Team Stats</CardTitle>
                     <CardDescription>Performance metrics for your team.</CardDescription>
-                </Header>
+                </CardHeader>
                  <CardContent className="text-center text-muted-foreground">
                     <p>Coming Soon</p>
                 </CardContent>
@@ -174,7 +174,7 @@ export default function ScorekeeperDashboard() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Best Game</CardTitle>
                     <CardDescription>Highlight of your team's top performance.</CardDescription>
-                </Header>
+                </CardHeader>
                 <CardContent className="text-center text-muted-foreground">
                     <p>Coming Soon</p>
                 </CardContent>
