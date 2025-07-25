@@ -6,7 +6,7 @@ import { PlusCircle, Play, Users, Loader2, Trophy, BarChart, User, Info } from '
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, serverTimestamp, query, where, Timestamp, limit } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, query, where, Timestamp, limit, orderBy } from 'firebase/firestore';
 
 interface Game {
     id: string;
@@ -51,21 +51,14 @@ export default function ScorekeeperDashboard() {
                 const gamesCollection = collection(db, 'games');
                 const gamesQuery = query(
                     gamesCollection,
-                    where('teams', 'array-contains', team.id)
+                    where('teams', 'array-contains', team.id),
+                    orderBy('createdAt', 'desc')
                 );
                 const gameSnapshot = await getDocs(gamesQuery);
                 const gamesList = gameSnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 } as Game));
-
-                // Sort games manually after fetching to avoid needing a composite index
-                gamesList.sort((a, b) => {
-                    const dateA = a.createdAt?.toDate() || new Date(0);
-                    const dateB = b.createdAt?.toDate() || new Date(0);
-                    return dateB.getTime() - dateA.getTime();
-                });
-
                 setGames(gamesList);
             }
 
@@ -135,7 +128,7 @@ export default function ScorekeeperDashboard() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Info className="h-5 w-5" /> Most Recent Game</CardTitle>
                     {mostRecentGame ? <CardDescription>{mostRecentGame.name}</CardDescription> : <CardDescription>No games started yet.</CardDescription>}
-                </CardHeader>
+                </Header>
                 {mostRecentGame && (
                      <CardContent>
                         <div className="flex justify-between items-center text-sm text-muted-foreground">
