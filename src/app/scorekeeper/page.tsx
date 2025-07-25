@@ -6,7 +6,7 @@ import { PlusCircle, Play, Users, Loader2, Trophy, BarChart, User, Info } from '
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, serverTimestamp, query, where, Timestamp, limit, orderBy } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, query, where, Timestamp, limit } from 'firebase/firestore';
 
 interface Game {
     id: string;
@@ -49,16 +49,25 @@ export default function ScorekeeperDashboard() {
             // Fetch games for that specific team
             if (team) {
                 const gamesCollection = collection(db, 'games');
+                // This query requires a composite index in Firestore. 
+                // By removing orderBy, we can avoid creating the index.
                 const gamesQuery = query(
                     gamesCollection,
-                    where('teams', 'array-contains', team.id),
-                    orderBy('createdAt', 'desc')
+                    where('teams', 'array-contains', team.id)
                 );
                 const gameSnapshot = await getDocs(gamesQuery);
                 const gamesList = gameSnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 } as Game));
+
+                // Sort games manually in the code
+                gamesList.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate() ?? new Date(0);
+                    const dateB = b.createdAt?.toDate() ?? new Date(0);
+                    return dateB.getTime() - dateA.getTime();
+                });
+                
                 setGames(gamesList);
             }
 
