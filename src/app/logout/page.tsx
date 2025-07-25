@@ -2,30 +2,25 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-// import { getAuth, signOut } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
+import { app } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LogoutPage() {
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // const auth = getAuth();
-    // In a real app, you would sign the user out here.
-    // signOut(auth).then(() => {
-    //   // Sign-out successful.
-    //   router.push('/');
-    // }).catch((error) => {
-    //   // An error happened.
-    //   console.error("Logout Error:", error);
-    //   router.push('/');
-    // });
-    
-    // For now, we'll just redirect after a short delay.
-    const timer = setTimeout(() => {
+    const auth = getAuth(app);
+    signOut(auth).then(() => {
+      toast({ title: "Logged Out", description: "You have been successfully logged out." });
       router.push('/');
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [router]);
+    }).catch((error) => {
+      console.error("Logout Error:", error);
+      toast({ title: "Logout Error", description: "Something went wrong. Please try again.", variant: "destructive" });
+      router.push('/');
+    });
+  }, [router, toast]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">

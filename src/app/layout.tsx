@@ -1,10 +1,18 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from '@/components/AuthProvider';
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
   title: 'Baobab Golf',
   description: 'The premier corporate golf challenge. Register your team, track scores, and follow the leaderboard live.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -14,14 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
-        <link rel="manifest" href="/manifest.json" />
-      </head>
-      <body className="font-body antialiased">
-        {children}
+      <body className={`${inter.variable} font-body antialiased`}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

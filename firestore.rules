@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      // Users can read and write their own user document
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /teams/{teamId} {
+      // Any authenticated user can read team data (for leaderboards)
+      allow read: if request.auth != null;
+      
+      // Only the scorekeeper associated with the team can create, update, or delete it
+      allow create, update, delete: if request.auth != null && request.auth.uid == resource.data.scorekeeperId;
+    }
+    match /games/{gameId} {
+       // Any authenticated user can read game data
+      allow read: if request.auth != null;
+      
+      // Only an authenticated scorekeeper whose team is in the game can write to it.
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'scorekeeper' && request.auth.uid == get(/databases/$(database)/documents/teams/$(request.resource.data.teams[0])).data.scorekeeperId;
+    }
+    match /chat/{msgId} {
+      // Any authenticated user can read and create chat messages
+      allow read, create: if request.auth != null;
+    }
+  }
+}

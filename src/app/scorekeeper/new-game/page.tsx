@@ -2,68 +2,39 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { addDoc, collection, getDocs, limit, orderBy, query, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
-
-interface Team {
-    id: string;
-    name: string;
-}
+import { useAuth } from '@/components/AuthProvider';
 
 export default function NewGamePage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [latestTeam, setLatestTeam] = useState<Team | null>(null);
-
-  useEffect(() => {
-    const fetchLatestTeam = async () => {
-        try {
-            const teamsCollection = collection(db, "teams");
-            // This is a simplified query. A real app would need a timestamp or a way to associate teams with users.
-            const teamsQuery = query(teamsCollection, limit(1)); 
-            const teamSnapshot = await getDocs(teamsQuery);
-            if (!teamSnapshot.empty) {
-                const teamDoc = teamSnapshot.docs[0];
-                setLatestTeam({ id: teamDoc.id, ...teamDoc.data() } as Team);
-            }
-        } catch (error) {
-            console.error("Error fetching latest team:", error);
-            toast({
-                title: 'Error',
-                description: 'Could not find a registered team.',
-                variant: 'destructive',
-            });
-        }
-    };
-    fetchLatestTeam();
-  }, [toast]);
+  const { teamId } = useAuth(); // Get teamId from Auth context
 
   const handleStartGame = async (holes: 9 | 18) => {
-    if (!latestTeam) {
+    if (!teamId) {
         toast({
             title: 'No Team Found',
-            description: "Please register a team before starting a game.",
+            description: "You must be part of a team to start a game.",
             variant: 'destructive'
         });
-        router.push('/register');
         return;
     }
 
     try {
-        await addDoc(collection(db, 'games'), {
+        const gameDocRef = await addDoc(collection(db, 'games'), {
             name: `New ${holes}-Hole Game`,
             status: 'Not Started',
             holes: holes,
-            teams: [latestTeam.id], // Storing team ID with the game
+            teams: [teamId], // Storing team ID with the game
             createdAt: serverTimestamp()
         });
         toast({
           title: 'Game Created!',
-          description: `A new ${holes}-hole game has been started for ${latestTeam.name}.`,
+          description: `A new ${holes}-hole game has been started.`,
         });
-        router.push(`/scorekeeper/team/${latestTeam.id}`);
+        router.push(`/scorekeeper/team/${teamId}`);
     } catch (error) {
         console.error("Error starting new game: ", error);
          toast({
