@@ -6,7 +6,7 @@ import { PlusCircle, Play, Users, Loader2, Trophy, BarChart, User, Info } from '
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, serverTimestamp, query, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, query, where, Timestamp, limit } from 'firebase/firestore';
 
 interface Game {
     id: string;
@@ -145,7 +145,7 @@ export default function ScorekeeperDashboard() {
                             </div>
                              <Badge variant={
                                 mostRecentGame.status === 'In Progress' ? 'default' :
-                                most-RecentGame.status === 'Completed' ? 'secondary' : 'outline'
+                                mostRecentGame.status === 'Completed' ? 'secondary' : 'outline'
                                 }>{mostRecentGame.status}</Badge>
                         </div>
                      </CardContent>
