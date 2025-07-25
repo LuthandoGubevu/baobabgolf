@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import InstallPWA from '@/components/InstallPWA';
 
 export default function Home() {
   return (
@@ -51,6 +52,7 @@ export default function Home() {
                 </Button>
             </Link>
           </div>
+          <InstallPWA />
         </main>
       </div>
     </div>
