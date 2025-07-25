@@ -6,7 +6,7 @@ import { PlusCircle, Play, Users, Loader2, Trophy, BarChart, User, Info } from '
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, query, where, Timestamp } from 'firebase/firestore';
 
 interface Game {
     id: string;
@@ -14,7 +14,7 @@ interface Game {
     status: 'Not Started' | 'In Progress' | 'Completed';
     holes: 9 | 18;
     teams: string[];
-    createdAt: any;
+    createdAt: Timestamp;
 }
 
 interface Team {
@@ -51,15 +51,21 @@ export default function ScorekeeperDashboard() {
                 const gamesCollection = collection(db, 'games');
                 const gamesQuery = query(
                     gamesCollection,
-                    where('teams', 'array-contains', team.id),
-                    orderBy('createdAt', 'desc')
+                    where('teams', 'array-contains', team.id)
                 );
                 const gameSnapshot = await getDocs(gamesQuery);
                 const gamesList = gameSnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
-                    teamsCount: doc.data().teams.length
                 } as Game));
+
+                // Sort games manually after fetching to avoid needing a composite index
+                gamesList.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate() || new Date(0);
+                    const dateB = b.createdAt?.toDate() || new Date(0);
+                    return dateB.getTime() - dateA.getTime();
+                });
+
                 setGames(gamesList);
             }
 
@@ -74,7 +80,7 @@ export default function ScorekeeperDashboard() {
 
   const handleStartGame = async (holes: 9 | 18) => {
     try {
-        const newGameRef = await addDoc(collection(db, 'games'), {
+        await addDoc(collection(db, 'games'), {
             name: `New ${holes}-Hole Game`,
             status: 'Not Started',
             holes: holes,
@@ -107,7 +113,6 @@ export default function ScorekeeperDashboard() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
       ) : (
-        <>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Team Members Card */}
             <Card className="lg:col-span-1 bg-card/50 backdrop-blur-lg border-white/20">
@@ -140,7 +145,7 @@ export default function ScorekeeperDashboard() {
                             </div>
                              <Badge variant={
                                 mostRecentGame.status === 'In Progress' ? 'default' :
-                                mostRecentGame.status === 'Completed' ? 'secondary' : 'outline'
+                                most-RecentGame.status === 'Completed' ? 'secondary' : 'outline'
                                 }>{mostRecentGame.status}</Badge>
                         </div>
                      </CardContent>
@@ -165,7 +170,7 @@ export default function ScorekeeperDashboard() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" /> Team Stats</CardTitle>
                     <CardDescription>Performance metrics for your team.</CardDescription>
-                </CardHeader>
+                </Header>
                  <CardContent className="text-center text-muted-foreground">
                     <p>Coming Soon</p>
                 </CardContent>
@@ -176,13 +181,12 @@ export default function ScorekeeperDashboard() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Best Game</CardTitle>
                     <CardDescription>Highlight of your team's top performance.</CardDescription>
-                </CardHeader>
+                </Header>
                 <CardContent className="text-center text-muted-foreground">
                     <p>Coming Soon</p>
                 </CardContent>
             </Card>
         </div>
-        </>
       )}
     </>
   );
