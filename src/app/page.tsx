@@ -35,7 +35,7 @@ export default function Home() {
               </Button>
             </Link>
              <Link href="/auth/signup" passHref>
-              <Button variant="secondary" className="w-full mt-4">
+              <Button variant="secondary" className="w-full">
                 Sign Up
               </Button>
             </Link>
