@@ -1,4 +1,5 @@
 import type { SVGProps } from "react";
+import Image from "next/image";
 
 export const GolfBallIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
@@ -26,13 +27,6 @@ export const HopeLogo = (props: SVGProps<SVGSVGElement>) => (
 );
 
 
-export const Logo = (props: SVGProps<SVGSVGElement>) => (
-    <svg width="210" height="40" viewBox="0 0 210 40" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <text x="0" y="30" fontFamily="Inter, sans-serif" fontSize="24" fontWeight="bold" fill="currentColor">
-        BAOBAB
-      </text>
-      <text x="125" y="30" fontFamily="Inter, sans-serif" fontSize="24" fontWeight="normal" fill="hsl(var(--primary))">
-        GOLF
-      </text>
-    </svg>
+export const Logo = ({ className }: { className?: string }) => (
+    <Image src="/logo.png" alt="Baobab Golf Logo" width={210} height={40} className={className} />
 );
