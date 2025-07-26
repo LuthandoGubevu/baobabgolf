@@ -72,7 +72,7 @@ export default function SignupPage() {
         const teamDocRef = await addDoc(collection(db, 'teams'), {
           name: values.teamName,
           players: [values.player1, values.player2, values.player3, values.player4],
-          scorekeeperId: user.uid,
+          scorekeeperId: user.uid, // This is the crucial field
           scores: {},
         });
         teamId = teamDocRef.id;
