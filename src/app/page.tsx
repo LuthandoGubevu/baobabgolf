@@ -28,13 +28,13 @@ export default function Home() {
                 Your modern companion for tracking golf scores.
                 </p>
             </div>
-          <div className="w-full space-y-4 py-4">
+          <div className="w-full py-4">
              <Link href="/auth/login" passHref>
               <Button className="w-full">
                 Log In
               </Button>
             </Link>
-             <Link href="/auth/signup" passHref>
+             <Link href="/auth/signup" passHref className="mt-4 inline-block w-full">
               <Button variant="secondary" className="w-full">
                 Sign Up
               </Button>
