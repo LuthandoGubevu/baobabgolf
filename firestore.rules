@@ -1,30 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
     match /users/{uid} {
+      // Users can read and write their own document
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
-
     match /teams/{teamId} {
-      // Anyone can read team data for leaderboards.
-      allow read: if true;
-      // Only the assigned scorekeeper can create, update, or delete their team's data.
-      // On create, we check the incoming resource. On update/delete, we check existing.
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.scorekeeperId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.scorekeeperId;
+      // Authenticated users can read team data (for leaderboards)
+      allow read: if request.auth != null;
+      // Only the assigned scorekeeper can create, update, or delete their team
+      allow create, update, delete: if request.auth != null && request.auth.uid == resource.data.scorekeeperId;
     }
-
     match /games/{gameId} {
-      // Anyone can read game data.
-      allow read: if true;
-      // Allow game creation if the user is authenticated.
-      // More specific rules could be added here if needed, e.g. checking team ownership.
+      // Authenticated users can read game data
+      allow read: if request.auth != null;
+      // Any authenticated user (only scorekeepers have UI access) can create a game.
+      // The logic is secured in the app by associating the game with the logged-in user's team.
       allow create: if request.auth != null;
+      // Only scorekeepers can update/delete games (future-proofing)
+      allow update, delete: if request.auth != null && get(/databases/$(database)/documents/teams/$(resource.data.teams[0])).data.scorekeeperId == request.auth.uid;
     }
-
     match /chat/{msgId} {
+      // Anyone can read chat messages
       allow read: if true;
+      // Any authenticated user can send a message
       allow create: if request.auth != null;
     }
   }
