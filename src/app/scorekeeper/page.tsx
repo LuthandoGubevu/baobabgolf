@@ -6,7 +6,7 @@ import { PlusCircle, Play, Users, Loader2, Trophy, BarChart, User, Info } from '
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, getDoc, query, where, Timestamp, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where, Timestamp, limit } from 'firebase/firestore';
 import { useAuth } from '@/components/AuthProvider';
 
 interface Game {
