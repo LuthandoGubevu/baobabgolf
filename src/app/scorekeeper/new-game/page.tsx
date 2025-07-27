@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/AuthProvider';
@@ -28,7 +28,7 @@ export default function NewGamePage() {
             status: 'Not Started',
             holes: holes,
             teams: [teamId], // Storing team ID with the game
-            createdAt: serverTimestamp()
+            createdAt: Timestamp.now()
         });
         toast({
           title: 'Game Created!',
