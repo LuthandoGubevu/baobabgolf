@@ -28,5 +28,5 @@ export const HopeLogo = (props: SVGProps<SVGSVGElement>) => (
 
 
 export const Logo = ({ className }: { className?: string }) => (
-    <Image src="/logo.png" alt="Baobab Golf Logo" width={210} height={40} className={className} />
+    <Image src="/logo.png" alt="Baobab Golf Logo" width={210} height={40} className={className} style={{ width: 'auto' }} />
 );
