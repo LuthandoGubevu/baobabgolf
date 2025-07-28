@@ -6,51 +6,45 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
     function isScorekeeper() {
       return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'scorekeeper';
     }
     
-    function getTeamId() {
+    function userTeamId() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamId;
     }
 
+    // Users can only read/write their own document
     match /users/{userId} {
-      // Users can read and write their own document
-      allow read, write: if isOwner(userId);
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Teams can be read by anyone authenticated. Only scorekeepers can create/update.
     match /teams/{teamId} {
-      // Any authenticated user can view teams
-      allow get, list: if isAuthenticated();
-      // Only scorekeepers can create teams
+      allow read: if isAuthenticated();
+      allow list: if isAuthenticated(); // Allow any authenticated user to list teams
       allow create: if isScorekeeper();
+      allow update: if isScorekeeper() && resource.data.scorekeeperId == request.auth.uid;
     }
-    
+
+    // Scorekeepers can create games and list games for their own team.
+    // Any authenticated user can read a specific game document.
     match /games/{gameId} {
-      // A scorekeeper can create a game for their team
-      allow create: if isScorekeeper() && request.resource.data.teamId == getTeamId();
+      allow read: if isAuthenticated();
+      allow list: if isScorekeeper() && request.query.where.get('teamId').string_value == userTeamId();
+      allow create, update, delete: if isScorekeeper() && request.auth.uid == get(/databases/$(database)/documents/games/$(gameId)).data.createdBy;
       
-      // A scorekeeper can read/update a game they created
-      allow read, update: if isScorekeeper() && get(/databases/$(database)/documents/games/$(gameId)).data.createdBy == request.auth.uid;
-
-      // A scorekeeper can query for games belonging to their team
-      allow list: if isScorekeeper() && request.query.teamId == getTeamId();
-
+      // Scores can be read by anyone, but only written by the game's creator.
       match /scores/{playerId} {
         allow read: if isAuthenticated();
-        // Only the scorekeeper who created the game can write scores
-        allow write: if isScorekeeper() && get(/databases/$(database)/documents/games/$(gameId)).data.createdBy == request.auth.uid;
+        allow list: if isAuthenticated();
+        allow create, update: if isScorekeeper() && request.auth.uid == get(/databases/$(database)/documents/games/$(gameId)).data.createdBy;
       }
     }
-
-    match /channels/global/messages/{messageId} {
-        // Any authenticated user can read or send messages
-        allow read, list: if isAuthenticated();
-        allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
+    
+    // Chat channels can be read/written to by any authenticated user.
+    match /channels/{channelId}/messages/{messageId} {
+        allow read, create: if isAuthenticated();
     }
   }
 }
