@@ -67,6 +67,7 @@ export default function HoleScoringPage() {
         const teamPlayers = teamSnap.data().players.map((name: string, index: number) => ({ id: `player${index + 1}`, name }));
         setPlayers(teamPlayers);
 
+        // Fetch existing scores for the current hole to pre-fill inputs
         const initialScores: Record<string, string> = {};
         for (const player of teamPlayers) {
             const scoreDocRef = doc(db, 'games', gameId as string, 'scores', player.id);
@@ -94,11 +95,12 @@ export default function HoleScoringPage() {
   }, [fetchGameAndPlayers]);
 
   const handleScoreChange = (playerId: string, value: string) => {
+    // Allow empty string to clear the input, but treat it as 0 for calculation if needed
     setScores(prev => ({ ...prev, [playerId]: value }));
   };
 
   const handleSaveScores = async () => {
-    if (players.some(player => !scores[player.id] || isNaN(Number(scores[player.id])))) {
+    if (players.some(player => scores[player.id] === '' || scores[player.id] === undefined || isNaN(Number(scores[player.id])))) {
       toast({ title: 'Invalid Scores', description: 'Please enter a valid score for all players.', variant: 'destructive' });
       return;
     }
@@ -117,7 +119,7 @@ export default function HoleScoringPage() {
             if (scoreSnap.exists()) {
               const currentHoleScores = scoreSnap.data().holeScores || {};
               currentHoleScores[currentHole] = newHoleScore;
-              const total = Object.values(currentHoleScores).reduce((sum: number, val) => sum + (val as number), 0);
+              const total = Object.values(currentHoleScores).reduce((sum: number, val) => sum + Number(val), 0);
               batch.update(scoreDocRef, {
                 holeScores: currentHoleScores,
                 total: total,
@@ -136,7 +138,12 @@ export default function HoleScoringPage() {
         
         // Update current hole in the main game doc
         const nextHole = currentHole + 1;
-        batch.update(gameDocRef, { currentHole: nextHole });
+        if (game && nextHole <= game.holes) {
+            batch.update(gameDocRef, { currentHole: nextHole });
+        } else {
+            // If it's the last hole, we might just mark it or handle it in summary page
+             batch.update(gameDocRef, { currentHole: game.holes + 1 }); // Mark as finished
+        }
         
         await batch.commit();
 
