@@ -35,8 +35,7 @@ export default function SpectatorChatPage() {
       return;
     }
     
-    const roomId = "global";
-    const messagesRef = collection(db, "channels", roomId, "messages");
+    const messagesRef = collection(db, "channels", "global", "messages");
     const q = query(messagesRef, orderBy("timestamp", "asc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -56,6 +55,7 @@ export default function SpectatorChatPage() {
     return () => unsubscribe();
   }, [user, toast]);
 
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -63,6 +63,11 @@ export default function SpectatorChatPage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user || !userRole || !fullName) {
+      toast({
+        title: "Cannot send message",
+        description: "You must be logged in to chat.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -75,11 +80,11 @@ export default function SpectatorChatPage() {
             timestamp: serverTimestamp(),
         });
         setNewMessage('');
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error sending message: ", error);
         toast({
-            title: "Error",
-            description: "Failed to send message.",
+            title: "Error Sending Message",
+            description: error.message || "Failed to send message.",
             variant: "destructive",
         });
     }
@@ -110,7 +115,7 @@ export default function SpectatorChatPage() {
                         return (
                           <div key={msg.id} className={`flex items-start gap-3 ${isSender ? 'flex-row-reverse' : ''}`}>
                               <Avatar>
-                                  <AvatarFallback>{msg.displayName.charAt(0).toUpperCase()}</AvatarFallback>
+                                  <AvatarFallback>{msg.displayName?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
                               </Avatar>
                               <div className={`p-3 rounded-lg max-w-xs md:max-w-md ${isSender ? 'bg-primary/80 text-primary-foreground' : 'bg-muted/50'}`}>
                                   <div className="flex items-center gap-2 mb-1">
