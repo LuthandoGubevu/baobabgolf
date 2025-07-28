@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/components/AuthProvider';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,6 +21,21 @@ interface Message {
   timestamp: any;
 }
 
+// Function to ensure the chat room exists
+async function ensureChatRoomExists(roomId: string) {
+    const roomRef = doc(db, "chatRooms", roomId);
+    const roomSnap = await getDoc(roomRef);
+    if (!roomSnap.exists()) {
+        try {
+            await setDoc(roomRef, { name: "Global Chat" });
+            console.log(`Chat room '${roomId}' created.`);
+        } catch (error) {
+            console.error("Error creating chat room:", error);
+        }
+    }
+}
+
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -32,24 +47,29 @@ export default function ChatPage() {
 
 
   useEffect(() => {
-    const messagesRef = collection(db, "chatRooms", "global", "messages");
-    const q = query(messagesRef, orderBy("timestamp", "asc"));
+    const roomId = "global";
+    
+    // Ensure the room exists before setting up the listener
+    ensureChatRoomExists(roomId).then(() => {
+        const messagesRef = collection(db, "chatRooms", roomId, "messages");
+        const q = query(messagesRef, orderBy("timestamp", "asc"));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
-      setMessages(msgs);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching chat messages: ", error);
-      setLoading(false);
-      toast({
-        title: "Error",
-        description: "Could not load chat messages.",
-        variant: "destructive",
-      });
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+          const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+          setMessages(msgs);
+          setLoading(false);
+        }, (error) => {
+          console.error("Error fetching chat messages: ", error);
+          setLoading(false);
+          toast({
+            title: "Error",
+            description: "Could not load chat messages.",
+            variant: "destructive",
+          });
+        });
+
+        return () => unsubscribe();
     });
-
-    return () => unsubscribe();
   }, [toast]);
 
   useEffect(() => {
