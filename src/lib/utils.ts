@@ -22,3 +22,9 @@ export const calculateTeamTotalScore = async (gameId: string): Promise<number> =
 
     return teamTotal;
 }
+
+export const formatTotalScore = (score: number): string => {
+  if (score > 0) return `+${score}`;
+  if (score === 0) return 'E';
+  return `${score}`;
+};
