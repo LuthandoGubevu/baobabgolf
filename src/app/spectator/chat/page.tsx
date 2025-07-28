@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/components/AuthProvider';
@@ -21,54 +21,40 @@ interface Message {
   timestamp: any;
 }
 
-// Function to ensure the chat room exists
-async function ensureChatRoomExists(roomId: string) {
-    const roomRef = doc(db, "chatRooms", roomId);
-    const roomSnap = await getDoc(roomRef);
-    if (!roomSnap.exists()) {
-        try {
-            await setDoc(roomRef, { name: "Global Chat" });
-            console.log(`Chat room '${roomId}' created.`);
-        } catch (error) {
-            console.error("Error creating chat room:", error);
-        }
-    }
-}
-
 export default function SpectatorChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const { user, userRole, fullName } = useAuth();
   const { toast } = useToast();
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    
     const roomId = "global";
+    const messagesRef = collection(db, "chatRooms", roomId, "messages");
+    const q = query(messagesRef, orderBy("timestamp", "asc"));
 
-    // Ensure the room exists before setting up the listener
-    ensureChatRoomExists(roomId).then(() => {
-        const messagesRef = collection(db, "chatRooms", roomId, "messages");
-        const q = query(messagesRef, orderBy("timestamp", "asc"));
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
-          setMessages(msgs);
-          setLoading(false);
-        }, (error) => {
-          console.error("Error fetching chat messages: ", error);
-          setLoading(false);
-          toast({
-            title: "Error",
-            description: "Could not load chat messages.",
-            variant: "destructive",
-          });
-        });
-
-        return () => unsubscribe();
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+      setMessages(msgs);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching chat messages: ", error);
+      setLoading(false);
+      toast({
+        title: "Error",
+        description: "Could not load chat messages.",
+        variant: "destructive",
+      });
     });
-  }, [toast]);
+
+    return () => unsubscribe();
+  }, [user, toast]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -108,7 +94,7 @@ export default function SpectatorChatPage() {
                 <CardDescription>Interact with players and other spectators in real-time.</CardDescription>
             </CardHeader>
              <CardContent className="flex-grow flex flex-col overflow-hidden">
-                <ScrollArea className="flex-grow h-full pr-4 -mr-4" ref={scrollAreaRef}>
+                <ScrollArea className="flex-grow h-full pr-4 -mr-4">
                   <div className="space-y-4">
                     {loading ? (
                        <div className="flex justify-center items-center h-full">
