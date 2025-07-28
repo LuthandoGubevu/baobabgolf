@@ -30,17 +30,29 @@ export default function ScorekeeperDashboard() {
   const { user, teamId } = useAuth();
 
   useEffect(() => {
-    if (!user || !teamId) {
+    if (!teamId) {
+      if (!user) {
         setLoading(false);
-        return;
-    }
+      }
+      return;
+    };
 
+    setLoading(true);
     const teamDocRef = doc(db, 'teams', teamId);
-    const getTeamData = getDoc(teamDocRef).then(teamSnapshot => {
-        if (teamSnapshot.exists()) {
-            setTeam({ id: teamSnapshot.id, ...teamSnapshot.data() } as Team);
-        }
+    const unsubscribe = onSnapshot(teamDocRef, (teamSnapshot) => {
+      if (teamSnapshot.exists()) {
+        setTeam({ id: teamSnapshot.id, ...teamSnapshot.data() } as Team);
+      } else {
+        setTeam(null);
+      }
+      setLoading(false);
     });
+
+    return () => unsubscribe();
+  }, [teamId, user]);
+
+  useEffect(() => {
+    if (!teamId) return;
 
     const gamesQuery = query(collection(db, 'games'), where('teamId', '==', teamId), where('active', '==', true));
     const unsubscribe = onSnapshot(gamesQuery, (snapshot) => {
@@ -50,10 +62,8 @@ export default function ScorekeeperDashboard() {
         console.error("Error fetching active games:", error);
     });
 
-    Promise.all([getTeamData]).finally(() => setLoading(false));
-
     return () => unsubscribe();
-  }, [user, teamId]);
+  }, [teamId]);
 
 
   return (
