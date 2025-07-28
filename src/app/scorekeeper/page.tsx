@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -31,15 +32,15 @@ export default function ScorekeeperDashboard() {
 
   useEffect(() => {
     if (!teamId) {
-      if (!user) {
-        setLoading(false);
+      if (user === null) {
+          setLoading(false);
       }
       return;
     };
 
     setLoading(true);
     const teamDocRef = doc(db, 'teams', teamId);
-    const unsubscribe = onSnapshot(teamDocRef, (teamSnapshot) => {
+    const unsubscribeTeam = onSnapshot(teamDocRef, (teamSnapshot) => {
       if (teamSnapshot.exists()) {
         setTeam({ id: teamSnapshot.id, ...teamSnapshot.data() } as Team);
       } else {
@@ -48,22 +49,19 @@ export default function ScorekeeperDashboard() {
       setLoading(false);
     });
 
-    return () => unsubscribe();
-  }, [teamId, user]);
-
-  useEffect(() => {
-    if (!teamId) return;
-
     const gamesQuery = query(collection(db, 'games'), where('teamId', '==', teamId), where('active', '==', true));
-    const unsubscribe = onSnapshot(gamesQuery, (snapshot) => {
+    const unsubscribeGames = onSnapshot(gamesQuery, (snapshot) => {
         const games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Game));
         setActiveGames(games);
     }, (error) => {
         console.error("Error fetching active games:", error);
     });
 
-    return () => unsubscribe();
-  }, [teamId]);
+    return () => {
+        unsubscribeTeam();
+        unsubscribeGames();
+    };
+  }, [teamId, user]);
 
 
   return (
@@ -120,7 +118,7 @@ export default function ScorekeeperDashboard() {
                                 <div key={game.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                                     <div>
                                         <p className="font-semibold">{game.holes}-hole game</p>
-                                        <p className="text-sm text-muted-foreground">Currently on hole {game.currentHole}</p>
+                                        <p className="text-sm text-muted-foreground">Currently on hole {game.currentHole > game.holes ? 'Finished' : game.currentHole}</p>
                                     </div>
                                     <Button onClick={() => router.push(`/scorekeeper/games/${game.id}`)}>View Summary</Button>
                                 </div>
