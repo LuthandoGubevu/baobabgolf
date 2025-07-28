@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Loader2 } from 'lucide-react';
 import { onSnapshot, collection, query, where, doc, getDoc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { calculateTeamTotalScore } from '@/lib/utils';
 
 interface TeamScore {
   id: string;
@@ -35,15 +35,23 @@ export default function SpectatorLeaderboardPage() {
           const gameId = gameDoc.id;
           const teamId = gameData.teamId;
 
+          // Use gameData.teamId to fetch the team document
           const teamDocRef = doc(db, 'teams', teamId);
           const teamSnap = await getDoc(teamDocRef);
           
           let teamName = "Unknown Team";
           if (teamSnap.exists()) {
             teamName = teamSnap.data().name;
+          } else {
+             console.error(`Team document not found for teamId: ${teamId}`);
           }
 
-          const totalScore = await calculateTeamTotalScore(gameId);
+          const scoresRef = collection(db, 'games', gameId, 'scores');
+          const scoresSnapshot = await getDocs(scoresRef);
+          let totalScore = 0;
+          scoresSnapshot.forEach(doc => {
+              totalScore += doc.data().total || 0;
+          });
 
           return {
             id: teamId,

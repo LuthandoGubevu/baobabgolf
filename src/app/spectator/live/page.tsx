@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { onSnapshot, collection, query, where, getDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { calculateTeamTotalScore } from '@/lib/utils';
 
 interface LiveTeam {
   id: string;
@@ -29,10 +29,12 @@ export default function SpectatorLivePage() {
           const gameData = gameDoc.data();
           const gameId = gameDoc.id;
 
+          // Use gameData.teamId to fetch the team document
           const teamDocRef = doc(db, 'teams', gameData.teamId);
           const teamSnap = await getDoc(teamDocRef);
 
           if (!teamSnap.exists()) {
+            console.error(`Team document not found for teamId: ${gameData.teamId}`);
             return null;
           }
 
