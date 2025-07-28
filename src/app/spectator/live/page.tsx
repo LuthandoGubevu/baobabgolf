@@ -78,7 +78,7 @@ export default function SpectatorLivePage() {
                 <p className="text-muted-foreground text-center py-4">No teams are currently on the course.</p>
             ) : (
               liveTeams.map((team) => (
-                  <div key={team.id} className="space-y-2">
+                  <div key={team.gameId} className="space-y-2">
                       <div className='flex justify-between items-baseline'>
                           <h3 className='text-lg font-semibold'>{team.name}</h3>
                           <Badge variant="outline">On Hole {team.currentHole}</Badge>
