@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -36,6 +37,7 @@ export default function HoleScoringPage() {
   const [scores, setScores] = useState<Record<string, number | string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [teamName, setTeamName] = useState('');
 
   const currentHole = parseInt(holeNumber as string, 10);
 
@@ -64,7 +66,9 @@ export default function HoleScoringPage() {
       const teamSnap = await getDoc(teamDocRef);
 
       if (teamSnap.exists()) {
-        const teamPlayers = teamSnap.data().players.map((name: string, index: number) => ({ id: `player${index + 1}`, name }));
+        const teamData = teamSnap.data();
+        setTeamName(teamData.name);
+        const teamPlayers = teamData.players.map((name: string, index: number) => ({ id: `player${index + 1}`, name }));
         setPlayers(teamPlayers);
 
         // Fetch existing scores for the current hole to pre-fill inputs
@@ -80,7 +84,6 @@ export default function HoleScoringPage() {
             }
         }
         setScores(initialScores);
-
       }
     } catch (error: any) {
       console.error('Error fetching data:', error);
@@ -178,8 +181,10 @@ export default function HoleScoringPage() {
     <div className="space-y-6">
       <Card className="bg-card/50 backdrop-blur-lg border-white/20">
         <CardHeader>
-          <CardTitle>Hole {currentHole} of {game.holes}</CardTitle>
-          <CardDescription>Enter the score for each player on this hole.</CardDescription>
+          <CardTitle className="text-2xl">Hole {currentHole} <span className="font-normal text-muted-foreground">of</span> {game.holes}</CardTitle>
+          <CardDescription>
+            Scoring for <span className="font-semibold text-foreground">{teamName}</span>. Enter the score for each player.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {players.map(player => (

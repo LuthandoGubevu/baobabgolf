@@ -1,7 +1,8 @@
+
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/components/AuthProvider';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +15,20 @@ export default function NewGamePage() {
   const { user, teamId } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [teamName, setTeamName] = useState('');
+
+  useEffect(() => {
+    if (teamId) {
+      const fetchTeamName = async () => {
+        const teamDocRef = doc(db, 'teams', teamId);
+        const teamSnap = await getDoc(teamDocRef);
+        if (teamSnap.exists()) {
+          setTeamName(teamSnap.data().name);
+        }
+      };
+      fetchTeamName();
+    }
+  }, [teamId]);
 
   const handleStartGame = async (holes: 9 | 18) => {
     if (!user || !teamId) {
@@ -52,14 +67,17 @@ export default function NewGamePage() {
       <Card className="bg-card/50 backdrop-blur-lg border-white/20">
         <CardHeader>
           <CardTitle>Choose Game Length</CardTitle>
-          <CardDescription>Select whether you're playing a 9-hole or 18-hole round.</CardDescription>
+          <CardDescription>
+            {teamName ? `Starting a new game for ${teamName}. ` : ''}
+            Select whether you're playing a 9-hole or 18-hole round.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-4">
           <Button
             size="lg"
             className="w-full text-2xl h-24"
             onClick={() => handleStartGame(9)}
-            disabled={loading}
+            disabled={loading || !teamId}
           >
             {loading ? <Loader2 className="animate-spin" /> : '9 Holes'}
           </Button>
@@ -67,7 +85,7 @@ export default function NewGamePage() {
             size="lg"
             className="w-full text-2xl h-24"
             onClick={() => handleStartGame(18)}
-            disabled={loading}
+            disabled={loading || !teamId}
           >
             {loading ? <Loader2 className="animate-spin" /> : '18 Holes'}
           </Button>
