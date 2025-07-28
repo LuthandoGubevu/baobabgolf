@@ -3,29 +3,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // USERS
+    // Users can read and write their own document.
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
+    // TEAMS
+    // Any authenticated user can view teams (for leaderboards).
+    // Only the assigned scorekeeper can create their team.
     match /teams/{teamId} {
       allow read: if request.auth != null;
-      // Only scorekeepers can create teams
       allow create: if request.auth != null && request.resource.data.scorekeeperId == request.auth.uid;
-      // For now, nobody can update or delete teams after creation
       allow update, delete: if false; 
     }
 
-    match /chatRooms/{roomId} {
-      // Allow authenticated users to read room metadata (if any)
-      allow read: if request.auth != null;
-
-      match /messages/{msgId} {
-        // Allow authenticated users to list messages and create new ones.
-        allow list, create: if request.auth != null;
-        // Individual message reads are allowed for consistency, but updates/deletes are not.
-        allow read: if request.auth != null;
-        allow update, delete: if false;
-      }
+    // CHAT
+    // Any authenticated user can read and send chat messages.
+    match /chatRooms/{roomId}/messages/{msgId} {
+      allow list, read, create: if request.auth != null;
+      allow update, delete: if false;
     }
   }
 }
