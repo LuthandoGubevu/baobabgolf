@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -23,17 +24,17 @@ const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
   role: z.enum(['spectator', 'scorekeeper'], { required_error: 'You must select a role.' }),
-  teamName: z.string().optional(),
+  name: z.string().optional(),
   player1: z.string().optional(),
   player2: z.string().optional(),
   player3: z.string().optional(),
   player4: z.string().optional(),
 }).refine(data => {
     if (data.role === 'scorekeeper') {
-        return !!data.teamName && !!data.player1 && !!data.player2 && !!data.player3 && !!data.player4;
+        return !!data.name && !!data.player1 && !!data.player2 && !!data.player3 && !!data.player4;
     }
     return true;
-}, { message: "Team details are required for scorekeepers.", path: ["teamName"] });
+}, { message: "Team details are required for scorekeepers.", path: ["name"] });
 
 
 export default function SignupPage() {
@@ -44,7 +45,7 @@ export default function SignupPage() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { role: 'spectator', teamName: '', player1: '', player2: '', player3: '', player4: '' },
+    defaultValues: { role: 'spectator', name: '', player1: '', player2: '', player3: '', player4: '' },
   });
 
   const selectedRole = form.watch('role');
@@ -54,7 +55,7 @@ export default function SignupPage() {
 
     if (values.role === 'scorekeeper') {
         const teamsRef = collection(db, 'teams');
-        const q = query(teamsRef, where("name", "==", values.teamName));
+        const q = query(teamsRef, where("name", "==", values.name));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
             toast({ title: 'Error', description: 'This team name is already taken.', variant: 'destructive' });
@@ -70,7 +71,7 @@ export default function SignupPage() {
       let teamId = null;
       if (values.role === 'scorekeeper') {
         const teamDocRef = await addDoc(collection(db, 'teams'), {
-          name: values.teamName,
+          name: values.name,
           players: [values.player1, values.player2, values.player3, values.player4],
           scorekeeperId: user.uid,
           scores: {},
@@ -159,15 +160,16 @@ export default function SignupPage() {
               {selectedRole === 'scorekeeper' && (
                 <div className="space-y-4 rounded-md border border-border p-4">
                   <h3 className="font-semibold">Team Information</h3>
-                   <FormField control={form.control} name="teamName" render={({ field }) => (
+                   <FormField control={form.control} name="name" render={({ field }) => (
                     <FormItem><FormLabel>Team Name</FormLabel><FormControl><Input placeholder="The Eagles" {...field} /></FormControl><FormMessage /></FormItem>
                    )} />
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField control={form.control} name="player1" render={({ field }) => (<FormItem><FormLabel>Player 1</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="player2" render={({ field }) => (<FormItem><FormLabel>Player 2</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name="player2" render={({ field }) => (<FormItem><FormLabel>Player 2</Label><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         <FormField control={form.control} name="player3" render={({ field }) => (<FormItem><FormLabel>Player 3</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="player4" render={({ field }) => (<FormItem><FormLabel>Player 4</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name="player4" render={({ field }) => (<FormItem><FormLabel>Player 4</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl></FormItem>)} />
                    </div>
+                   <FormMessage>{form.formState.errors.name?.message}</FormMessage>
                 </div>
               )}
               
