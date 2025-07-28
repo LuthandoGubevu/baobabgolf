@@ -2,16 +2,14 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Flame, Loader2 } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import { onSnapshot, collection, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { calculateTotalScore, calculateHolesPlayed } from '@/lib/utils';
 
 interface Team {
   id: string;
   name: string;
-  totalScore: number;
-  holesPlayed: number;
+  players: string[];
 }
 
 export default function SpectatorLeaderboardPage() {
@@ -26,11 +24,10 @@ export default function SpectatorLeaderboardPage() {
         return {
           id: doc.id,
           name: data.name,
-          totalScore: calculateTotalScore(data.scores),
-          holesPlayed: calculateHolesPlayed(data.scores),
+          players: data.players || [],
         };
       });
-      teams.sort((a, b) => a.totalScore - b.totalScore);
+      teams.sort((a, b) => a.name.localeCompare(b.name));
       setLeaderboardData(teams);
       setLoading(false);
     });
@@ -40,11 +37,11 @@ export default function SpectatorLeaderboardPage() {
 
   return (
     <div className="space-y-6">
-       <h1 className="text-3xl font-bold font-headline">Leaderboard</h1>
+       <h1 className="text-3xl font-bold font-headline">Teams</h1>
         <Card className="bg-card/50 backdrop-blur-lg border-white/20">
             <CardHeader>
-            <CardTitle>Overall Rankings</CardTitle>
-            <CardDescription>Live standings from across the tournament.</CardDescription>
+            <CardTitle>Registered Teams</CardTitle>
+            <CardDescription>All the teams registered for the tournament.</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -55,24 +52,24 @@ export default function SpectatorLeaderboardPage() {
                 <Table>
                     <TableHeader>
                     <TableRow className="border-white/20">
-                        <TableHead className="w-[50px]">Rank</TableHead>
-                        <TableHead>Team</TableHead>
-                        <TableHead className="text-center">Thru</TableHead>
-                        <TableHead className="text-right">Score</TableHead>
+                        <TableHead>Team Name</TableHead>
+                        <TableHead>Players</TableHead>
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {leaderboardData.map((row, index) => (
-                        <TableRow key={row.id} className="border-white/20">
-                        <TableCell className="font-medium text-center">{index + 1}</TableCell>
-                        <TableCell className="font-medium">
-                            <div className='flex items-center gap-2'>
-                                {row.name}
-                                {/* {row.hot && <Flame className="h-4 w-4 text-primary" />} */}
-                            </div>
+                    {leaderboardData.map((team) => (
+                        <TableRow key={team.id} className="border-white/20">
+                        <TableCell className="font-medium">{team.name}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {team.players.map(player => (
+                              <div key={player} className="flex items-center gap-2 text-sm">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                {player}
+                              </div>
+                            ))}
+                          </div>
                         </TableCell>
-                        <TableCell className="text-center">{row.holesPlayed === 18 ? 'F' : row.holesPlayed}</TableCell>
-                        <TableCell className="text-right font-mono">{row.totalScore > 0 ? `+${row.totalScore}` : row.totalScore === 0 ? 'E' : row.totalScore}</TableCell>
                         </TableRow>
                     ))}
                     </TableBody>

@@ -5,7 +5,6 @@ import { BottomNav } from '@/components/BottomNav';
 
 const scorekeeperNavItems = [
   { href: '/scorekeeper', label: 'Home', icon: 'Home' },
-  { href: '/scorekeeper/new-game', label: 'New Game', icon: 'PlusCircle' },
   { href: '/scorekeeper/leaderboard', label: 'Leaderboard', icon: 'Trophy' },
   { href: '/scorekeeper/chat', label: 'Chat', icon: 'MessageSquare' },
   { href: '/logout', label: 'Logout', icon: 'LogOut' },
