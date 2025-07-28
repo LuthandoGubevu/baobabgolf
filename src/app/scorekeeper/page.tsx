@@ -112,7 +112,7 @@ export default function ScorekeeperDashboard() {
                                         <p className="font-semibold">{game.holes}-hole game</p>
                                         <p className="text-sm text-muted-foreground">Currently on hole {game.currentHole}</p>
                                     </div>
-                                    <Button onClick={() => router.push(`/scorekeeper/games/${game.id}/hole/${game.currentHole}`)}>Continue</Button>
+                                    <Button onClick={() => router.push(`/scorekeeper/games/${game.id}`)}>View Summary</Button>
                                 </div>
                             ))}
                         </div>

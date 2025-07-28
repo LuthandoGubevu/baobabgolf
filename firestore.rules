@@ -1,42 +1,44 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAuthenticated() {
       return request.auth != null;
     }
+    
+    function isScorekeeper() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'scorekeeper';
+    }
 
-    // Users can only read/write their own document
     match /users/{userId} {
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Teams can be read by anyone logged in, but only created by the assigned scorekeeper
     match /teams/{teamId} {
-      allow read, list: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.scorekeeperId == request.auth.uid;
-      allow update, delete: if false; // For now
+      allow read: if isAuthenticated();
+      allow create: if isScorekeeper() && request.resource.data.scorekeeperId == request.auth.uid;
+      allow update, delete: if false; 
+    }
+    
+    match /channels/{channelId}/messages/{msgId} {
+        allow list, read: if isAuthenticated();
+        allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if false;
     }
 
-    // Games can be read by anyone logged in.
-    // They can only be created or updated by the user who created them (the scorekeeper).
     match /games/{gameId} {
-      allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && request.auth.uid == request.resource.data.createdBy;
+      allow read, update: if isAuthenticated();
+      allow create: if isScorekeeper() && request.resource.data.createdBy == request.auth.uid;
       allow delete: if false;
     }
 
-    // Scores can be read by anyone, but only written by the game creator.
     match /games/{gameId}/scores/{playerId} {
-      allow read, list: if isAuthenticated();
-      allow create, update: if isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/games/$(gameId)).data.createdBy;
-    }
-
-    // Any authenticated user can read or create chat messages.
-    match /channels/{channelId}/messages/{messageId} {
-      allow read, create: if isAuthenticated();
-      allow list: if isAuthenticated();
-      allow update, delete: if false;
+      allow read: if isAuthenticated();
+      allow create, update: if isScorekeeper() && 
+                          get(/databases/$(database)/documents/games/$(gameId)).data.createdBy == request.auth.uid;
+      allow delete: if false;
     }
   }
 }

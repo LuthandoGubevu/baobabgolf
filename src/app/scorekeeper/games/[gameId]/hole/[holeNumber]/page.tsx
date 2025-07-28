@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { doc, getDoc, setDoc, updateDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, getDocs, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/components/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, ArrowLeft, ArrowRight, Home } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowRight, Home, CheckCircle } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
 interface Player {
@@ -20,6 +20,7 @@ interface Player {
 interface Game {
   holes: number;
   teamId: string;
+  createdBy: string;
 }
 
 export default function HoleScoringPage() {
@@ -39,7 +40,7 @@ export default function HoleScoringPage() {
   const currentHole = parseInt(holeNumber as string, 10);
 
   const fetchGameAndPlayers = useCallback(async () => {
-    if (!gameId) return;
+    if (!user || !gameId) return;
     setLoading(true);
     try {
       const gameDocRef = doc(db, 'games', gameId as string);
@@ -50,7 +51,13 @@ export default function HoleScoringPage() {
         router.push('/scorekeeper');
         return;
       }
+      
       const gameData = gameSnap.data() as Game;
+      if (gameData.createdBy !== user.uid) {
+         toast({ title: 'Unauthorized', description: 'You cannot edit this game.', variant: 'destructive' });
+         router.push('/scorekeeper');
+         return;
+      }
       setGame(gameData);
 
       const teamDocRef = doc(db, 'teams', gameData.teamId);
@@ -60,17 +67,19 @@ export default function HoleScoringPage() {
         const teamPlayers = teamSnap.data().players.map((name: string, index: number) => ({ id: `player${index + 1}`, name }));
         setPlayers(teamPlayers);
 
-        // Fetch existing scores for this hole
-        const scoresCollectionRef = collection(db, 'games', gameId as string, 'scores');
-        const scoresSnapshot = await getDocs(scoresCollectionRef);
-        const existingScores: Record<string, number | string> = {};
-        scoresSnapshot.forEach(doc => {
-            const data = doc.data();
-            if(data.holeScores && data.holeScores[currentHole]) {
-                 existingScores[doc.id] = data.holeScores[currentHole];
+        const initialScores: Record<string, string> = {};
+        for (const player of teamPlayers) {
+            const scoreDocRef = doc(db, 'games', gameId as string, 'scores', player.id);
+            const scoreSnap = await getDoc(scoreDocRef);
+            if (scoreSnap.exists()) {
+                const scoreData = scoreSnap.data();
+                if (scoreData.holeScores && scoreData.holeScores[currentHole]) {
+                     initialScores[player.id] = scoreData.holeScores[currentHole];
+                }
             }
-        });
-        setScores(existingScores);
+        }
+        setScores(initialScores);
+
       }
     } catch (error: any) {
       console.error('Error fetching data:', error);
@@ -78,7 +87,7 @@ export default function HoleScoringPage() {
     } finally {
       setLoading(false);
     }
-  }, [gameId, toast, router, currentHole]);
+  }, [gameId, user, toast, router, currentHole]);
 
   useEffect(() => {
     fetchGameAndPlayers();
@@ -89,55 +98,56 @@ export default function HoleScoringPage() {
   };
 
   const handleSaveScores = async () => {
-    if (Object.values(scores).some(score => score === '' || isNaN(Number(score)))) {
+    if (players.some(player => !scores[player.id] || isNaN(Number(scores[player.id])))) {
       toast({ title: 'Invalid Scores', description: 'Please enter a valid score for all players.', variant: 'destructive' });
       return;
     }
 
     setSaving(true);
     try {
-      const gameDocRef = doc(db, 'games', gameId as string);
-      
-      for (const playerId of Object.keys(scores)) {
-        const scoreDocRef = doc(db, 'games', gameId as string, 'scores', playerId);
-        const scoreSnap = await getDoc(scoreDocRef);
-        
-        const newHoleScore = Number(scores[playerId]);
-        
-        if (scoreSnap.exists()) {
-          const currentHoleScores = scoreSnap.data().holeScores || {};
-          currentHoleScores[currentHole] = newHoleScore;
-          const total = Object.values(currentHoleScores).reduce((sum: number, val) => sum + (val as number), 0);
-          await updateDoc(scoreDocRef, {
-            holeScores: currentHoleScores,
-            total: total,
-            updatedAt: serverTimestamp()
-          });
-        } else {
-          await setDoc(scoreDocRef, {
-            holeScores: { [currentHole]: newHoleScore },
-            total: newHoleScore,
-            updatedAt: serverTimestamp(),
-            playerId: playerId,
-            playerName: players.find(p => p.id === playerId)?.name || 'Unknown'
-          });
+        const batch = writeBatch(db);
+        const gameDocRef = doc(db, 'games', gameId as string);
+
+        for (const player of players) {
+            const scoreDocRef = doc(db, 'games', gameId as string, 'scores', player.id);
+            const scoreSnap = await getDoc(scoreDocRef);
+            
+            const newHoleScore = Number(scores[player.id]);
+
+            if (scoreSnap.exists()) {
+              const currentHoleScores = scoreSnap.data().holeScores || {};
+              currentHoleScores[currentHole] = newHoleScore;
+              const total = Object.values(currentHoleScores).reduce((sum: number, val) => sum + (val as number), 0);
+              batch.update(scoreDocRef, {
+                holeScores: currentHoleScores,
+                total: total,
+                updatedAt: serverTimestamp()
+              });
+            } else {
+              batch.set(scoreDocRef, {
+                holeScores: { [currentHole]: newHoleScore },
+                total: newHoleScore,
+                updatedAt: serverTimestamp(),
+                playerId: player.id,
+                playerName: player.name
+              });
+            }
         }
-      }
+        
+        // Update current hole in the main game doc
+        const nextHole = currentHole + 1;
+        batch.update(gameDocRef, { currentHole: nextHole });
+        
+        await batch.commit();
 
-      // Update current hole if it's this one
-      const gameSnap = await getDoc(gameDocRef);
-      if (gameSnap.data()?.currentHole === currentHole) {
-        await updateDoc(gameDocRef, { currentHole: Math.min(game!.holes, currentHole + 1) });
-      }
-
-      toast({ title: 'Scores Saved!', description: `Scores for hole ${currentHole} have been saved.` });
-      
-      // Navigate to next hole or summary if it's the last hole
-      if (game && currentHole < game.holes) {
-        router.push(`/scorekeeper/games/${gameId}/hole/${currentHole + 1}`);
-      } else {
-        router.push(`/scorekeeper/games/${gameId}`);
-      }
+        toast({ title: 'Scores Saved!', description: `Scores for hole ${currentHole} have been saved.` });
+        
+        // Navigate to next hole or summary if it's the last hole
+        if (game && nextHole > game.holes) {
+            router.push(`/scorekeeper/games/${gameId}`);
+        } else {
+            router.push(`/scorekeeper/games/${gameId}/hole/${nextHole}`);
+        }
 
     } catch (error: any) {
       console.error('Error saving scores:', error);
@@ -155,6 +165,8 @@ export default function HoleScoringPage() {
     );
   }
 
+  const isLastHole = currentHole === game.holes;
+
   return (
     <div className="space-y-6">
       <Card className="bg-card/50 backdrop-blur-lg border-white/20">
@@ -169,7 +181,7 @@ export default function HoleScoringPage() {
               <Input
                 id={`score-${player.id}`}
                 type="number"
-                placeholder="E.g., 4"
+                placeholder="-"
                 value={scores[player.id] || ''}
                 onChange={e => handleScoreChange(player.id, e.target.value)}
                 className="text-center text-lg"
@@ -180,7 +192,13 @@ export default function HoleScoringPage() {
       </Card>
       <div className="flex flex-col gap-4">
         <Button onClick={handleSaveScores} disabled={saving} size="lg">
-          {saving ? <Loader2 className="animate-spin" /> : 'Save Scores & Continue'}
+          {saving ? <Loader2 className="animate-spin" /> : (
+            isLastHole ? (
+              <>
+                <CheckCircle className="mr-2" /> Save & Finish Game
+              </>
+            ) : 'Save & Next Hole'
+          )}
         </Button>
         <div className="grid grid-cols-2 gap-4">
           <Button

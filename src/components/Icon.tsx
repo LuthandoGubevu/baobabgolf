@@ -1,12 +1,12 @@
-import { Home, Trophy, MessageSquare, BarChart, LogOut, LucideProps, Tv } from 'lucide-react';
+import { Home, Trophy, MessageSquare, Users, LogOut, LucideProps, PlusCircle } from 'lucide-react';
 
 const icons = {
   Home,
   Trophy,
   MessageSquare,
-  BarChart,
+  Users,
   LogOut,
-  Tv,
+  PlusCircle,
 };
 
 interface IconProps extends LucideProps {

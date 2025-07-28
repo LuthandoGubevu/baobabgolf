@@ -2,13 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { doc, getDoc, collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, query, orderBy, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Trophy, Pencil } from 'lucide-react';
+import { Loader2, Trophy, Pencil, CheckCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface Game {
   id: string;
@@ -68,6 +79,20 @@ export default function GameSummaryPage() {
     };
   }, [gameId, toast, router]);
 
+  const handleFinishGame = async () => {
+    if (!game) return;
+    try {
+        await updateDoc(doc(db, 'games', game.id), {
+            active: false,
+            completedAt: new Date()
+        });
+        toast({ title: 'Game Finished!', description: 'The final scores have been recorded.' });
+        router.push('/scorekeeper');
+    } catch(error: any) {
+        toast({ title: 'Error', description: 'Could not finish the game.', variant: 'destructive' });
+    }
+  }
+
   if (loading || !game) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -75,6 +100,9 @@ export default function GameSummaryPage() {
       </div>
     );
   }
+
+  const isGameComplete = !game.active || game.currentHole > game.holes;
+
 
   return (
     <div className="space-y-6">
@@ -87,11 +115,19 @@ export default function GameSummaryPage() {
           <div className="flex justify-between items-center mb-6 p-4 bg-muted/50 rounded-lg">
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
-              <p className="text-lg font-bold">{game.active ? `On Hole ${game.currentHole}` : 'Completed'}</p>
+              <p className="text-lg font-bold">
+                {isGameComplete ? 'Completed' : `On Hole ${game.currentHole}`}
+              </p>
             </div>
-            <Button onClick={() => router.push(`/scorekeeper/games/${game.id}/hole/${game.currentHole}`)}>
-                <Pencil className="mr-2"/> Go to Current Hole
-            </Button>
+            {!isGameComplete ? (
+                 <Button onClick={() => router.push(`/scorekeeper/games/${game.id}/hole/${game.currentHole}`)}>
+                    <Pencil className="mr-2"/> Go to Current Hole
+                </Button>
+            ) : (
+                <div className="text-lg font-bold text-green-400 flex items-center gap-2">
+                    <CheckCircle /> Final Score
+                </div>
+            )}
           </div>
           
           <h3 className="text-xl font-semibold mb-2 flex items-center gap-2"><Trophy/> Leaderboard</h3>
@@ -113,6 +149,29 @@ export default function GameSummaryPage() {
               ))}
             </TableBody>
           </Table>
+
+          {!isGameComplete && game.currentHole > game.holes && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button className="w-full mt-6" variant="destructive">
+                  <CheckCircle className="mr-2" /> Finish Game
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to finish the game?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will finalize all scores and mark the game as complete. You won't be able to make further changes.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleFinishGame}>Finish Game</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
         </CardContent>
       </Card>
     </div>
