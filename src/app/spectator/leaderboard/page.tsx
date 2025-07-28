@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2 } from 'lucide-react';
-import { onSnapshot, collection, query, getDocs } from 'firebase/firestore';
+import { onSnapshot, collection, query, getDocs, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { calculateTeamTotalScore } from '@/lib/utils';
 
@@ -18,38 +18,71 @@ export default function SpectatorLeaderboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, 'teams'));
-    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
-      const teamsPromises = querySnapshot.docs.map(async (teamDoc) => {
-        const teamData = teamDoc.data();
-        let totalScore = 0;
-
-        // Find active game for the team
+    const fetchLeaderboard = async () => {
+      setLoading(true);
+      try {
+        // 1. Get all active games
         const gamesRef = collection(db, 'games');
-        const gameQuery = query(gamesRef, where('teamId', '==', teamDoc.id), where('active', '==', true));
-        const gameSnapshot = await getDocs(gameQuery);
+        const activeGamesQuery = query(gamesRef, where('active', '==', true));
         
-        if (!gameSnapshot.empty) {
-          const gameId = gameSnapshot.docs[0].id;
-          totalScore = await calculateTeamTotalScore(gameId);
-        }
+        // Use onSnapshot to listen for real-time changes to active games
+        const unsubscribe = onSnapshot(activeGamesQuery, async (gameSnapshot) => {
+          if (gameSnapshot.empty) {
+            setLeaderboardData([]);
+            setLoading(false);
+            return;
+          }
 
-        return {
-          id: teamDoc.id,
-          name: teamData.name,
-          totalScore,
-        };
-      });
+          // 2. For each active game, get team info and calculate score
+          const teamsPromises = gameSnapshot.docs.map(async (gameDoc) => {
+            const gameData = gameDoc.data();
+            const gameId = gameDoc.id;
+            const teamId = gameData.teamId;
 
-      const teams = await Promise.all(teamsPromises);
-      
-      teams.sort((a, b) => a.totalScore - b.totalScore);
+            // Get team document
+            const teamDocRef = doc(db, 'teams', teamId);
+            const teamSnap = await getDoc(teamDocRef);
+            
+            let teamName = "Unknown Team";
+            if (teamSnap.exists()) {
+              teamName = teamSnap.data().name;
+            }
 
-      setLeaderboardData(teams);
-      setLoading(false);
-    });
+            // Calculate total score for the game
+            const totalScore = await calculateTeamTotalScore(gameId);
 
-    return () => unsubscribe();
+            return {
+              id: teamId,
+              name: teamName,
+              totalScore,
+            };
+          });
+
+          const teams = await Promise.all(teamsPromises);
+          
+          // 3. Sort and update state
+          teams.sort((a, b) => a.totalScore - b.totalScore);
+          setLeaderboardData(teams);
+          setLoading(false);
+        });
+
+        return unsubscribe;
+
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+        setLoading(false);
+      }
+    };
+
+    const unsubscribePromise = fetchLeaderboard();
+
+    return () => {
+        unsubscribePromise.then(unsubscribe => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        });
+    };
   }, []);
 
   return (
@@ -65,6 +98,8 @@ export default function SpectatorLeaderboardPage() {
                  <div className="flex justify-center items-center h-40">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                  </div>
+              ) : leaderboardData.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">No active games being tracked right now.</p>
               ) : (
                 <Table>
                     <TableHeader>
