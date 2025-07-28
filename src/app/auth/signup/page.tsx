@@ -165,8 +165,8 @@ export default function SignupPage() {
                    )} />
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField control={form.control} name="player1" render={({ field }) => (<FormItem><FormLabel>Player 1</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="player2" render={({ field }) => (<FormItem><FormLabel>Player 2</Label><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="player3" render={({ field }) => (<FormItem><FormLabel>Player 3</Label><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name="player2" render={({ field }) => (<FormItem><FormLabel>Player 2</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name="player3" render={({ field }) => (<FormItem><FormLabel>Player 3</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         <FormField control={form.control} name="player4" render={({ field }) => (<FormItem><FormLabel>Player 4</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl></FormItem>)} />
                    </div>
                    <FormMessage>{form.formState.errors.name?.message}</FormMessage>
