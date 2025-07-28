@@ -13,6 +13,7 @@ interface TeamScore {
   name: string;
   totalScore: number;
   players: string[];
+  gameId: string;
 }
 
 export default function SpectatorLeaderboardPage() {
@@ -66,6 +67,7 @@ export default function SpectatorLeaderboardPage() {
             name: teamName,
             totalScore,
             players,
+            gameId,
           };
         });
 
@@ -110,7 +112,7 @@ export default function SpectatorLeaderboardPage() {
                       </TableHeader>
                   </Table>
                   {leaderboardData.map((team, index) => (
-                    <AccordionItem value={team.id} key={team.id}>
+                    <AccordionItem value={team.gameId} key={team.gameId}>
                       <AccordionTrigger className="hover:no-underline">
                         <Table className="w-full">
                             <TableBody>
