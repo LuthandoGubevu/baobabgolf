@@ -1,68 +1,56 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to keep rules readable
     function isAuthenticated() {
       return request.auth != null;
     }
 
     function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
 
     function isScorekeeper() {
-      // Check if the user document exists and has the role 'scorekeeper'
       return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'scorekeeper';
     }
+    
+    function getTeamId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamId;
+    }
 
-    // A user can only read or write their own user document.
     match /users/{userId} {
+      // Users can read and write their own document
       allow read, write: if isOwner(userId);
     }
 
-    // Rules for teams
     match /teams/{teamId} {
-      // Any authenticated user can read team data (for leaderboards etc.)
-      // The query in the signup form also requires list permission.
+      // Any authenticated user can view teams
       allow get, list: if isAuthenticated();
-
-      // Only scorekeepers can create a new team.
-      // The new team document must link the scorekeeper's ID correctly.
-      allow create: if isScorekeeper() && request.resource.data.scorekeeperId == request.auth.uid;
-      
-      // No one can update or delete a team after creation for now.
-      allow update, delete: if false;
+      // Only scorekeepers can create teams
+      allow create: if isScorekeeper();
     }
-
-    // Rules for games.
+    
     match /games/{gameId} {
-        // Only the scorekeeper who created the game can read, update, or delete it.
-        // Reading also requires list permission for the dashboard query.
-        allow list, get, update, delete: if isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/games/$(gameId)).data.createdBy;
-        
-        // Any scorekeeper can create a new game.
-        allow create: if isScorekeeper();
+      // A scorekeeper can create a game for their team
+      allow create: if isScorekeeper() && request.resource.data.teamId == getTeamId();
+      
+      // A scorekeeper can read/update a game they created
+      allow read, update: if isScorekeeper() && get(/databases/$(database)/documents/games/$(gameId)).data.createdBy == request.auth.uid;
 
-        // Rules for the 'scores' subcollection within a game.
-        match /scores/{playerId} {
-            // Any authenticated user can read scores (for spectator leaderboards).
-            allow get, list: if isAuthenticated();
-            
-            // Only the scorekeeper who created the game can write scores.
-            allow write: if isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/games/$(gameId)).data.createdBy;
-        }
+      // A scorekeeper can query for games belonging to their team
+      allow list: if isScorekeeper() && request.query.teamId == getTeamId();
+
+      match /scores/{playerId} {
+        allow read: if isAuthenticated();
+        // Only the scorekeeper who created the game can write scores
+        allow write: if isScorekeeper() && get(/databases/$(database)/documents/games/$(gameId)).data.createdBy == request.auth.uid;
+      }
     }
 
-    // Rules for chat channels.
-    match /channels/{channelId}/messages/{messageId} {
-        // Any authenticated user can read (list) and create messages.
-        allow list, get, create: if isAuthenticated();
-
-        // Nobody can update or delete chat messages.
-        allow update, delete: if false;
+    match /channels/global/messages/{messageId} {
+        // Any authenticated user can read or send messages
+        allow read, list: if isAuthenticated();
+        allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
     }
   }
 }
