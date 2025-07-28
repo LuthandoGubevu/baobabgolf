@@ -9,7 +9,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAPiz21odg4cknDAJmeik28rPfDPsTv6Ew",
   authDomain: "baobabgolf.firebaseapp.com",
   projectId: "baobabgolf",
-  storageBucket: "baobabgolf.appspot.com",
+  storageBucket: "baobabgolf.firebasestorage.app",
   messagingSenderId: "78161841879",
   appId: "1:78161841879:web:08cdff541d18324fec2a92",
   measurementId: "G-J7WQB1TXEL"
