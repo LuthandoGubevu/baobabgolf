@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2 } from 'lucide-react';
-import { onSnapshot, collection, query, getDocs, where, doc, getDoc } from 'firebase/firestore';
+import { onSnapshot, collection, query, where, doc, getDoc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { calculateTeamTotalScore } from '@/lib/utils';
 
@@ -22,6 +22,7 @@ export default function SpectatorLeaderboardPage() {
     const activeGamesQuery = query(gamesRef, where('active', '==', true));
     
     const unsubscribe = onSnapshot(activeGamesQuery, async (gameSnapshot) => {
+      setLoading(true);
       try {
         if (gameSnapshot.empty) {
           setLeaderboardData([]);
