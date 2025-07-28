@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
-import { onSnapshot, collection, query, where, getDoc, doc } from 'firebase/firestore';
+import { onSnapshot, collection, query, where, getDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { calculateTeamTotalScore } from '@/lib/utils';
 
@@ -37,12 +37,18 @@ export default function SpectatorLivePage() {
           }
 
           const teamName = teamSnap.data().name;
-          const totalScore = await calculateTeamTotalScore(gameId);
+          
+          const scoresRef = collection(db, 'games', gameId, 'scores');
+          const scoresSnapshot = await getDocs(scoresRef);
+          let totalScore = 0;
+          scoresSnapshot.forEach(doc => {
+              totalScore += doc.data().total || 0;
+          });
 
           return {
             id: gameData.teamId,
             name: teamName,
-            totalScore,
+            totalScore: totalScore,
             currentHole: gameData.currentHole,
             gameId: gameId,
           };
