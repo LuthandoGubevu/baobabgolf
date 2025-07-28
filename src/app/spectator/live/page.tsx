@@ -32,6 +32,11 @@ export default function SpectatorLivePage() {
           const gameId = gameDoc.id;
           const teamId = gameData.teamId;
 
+          if (!teamId) {
+             console.error(`Game document ${gameId} is missing a teamId.`);
+             return null;
+          }
+          
           const teamDocRef = doc(db, 'teams', teamId);
           const teamSnap = await getDoc(teamDocRef);
 
@@ -40,8 +45,9 @@ export default function SpectatorLivePage() {
             return null;
           }
 
-          const teamName = teamSnap.data().name;
-          const players = teamSnap.data().players || [];
+          const teamData = teamSnap.data();
+          const teamName = teamData.name;
+          const players = teamData.players || [];
           
           const scoresRef = collection(db, 'games', gameId, 'scores');
           const scoresSnapshot = await getDocs(scoresRef);
@@ -93,7 +99,7 @@ export default function SpectatorLivePage() {
                 {liveTeams.map((team) => (
                   <AccordionItem value={team.gameId} key={team.gameId}>
                      <AccordionTrigger className="hover:no-underline p-3 rounded-lg hover:bg-white/5">
-                        <div className="w-full space-y-2">
+                        <div className="w-full space-y-2 text-left">
                            <div className='flex justify-between items-baseline'>
                               <h3 className='text-lg font-semibold'>{team.name}</h3>
                               <Badge variant="outline">On Hole {team.currentHole}</Badge>

@@ -36,6 +36,11 @@ export default function SpectatorLeaderboardPage() {
           const gameData = gameDoc.data();
           const gameId = gameDoc.id;
           const teamId = gameData.teamId;
+          
+          if (!teamId) {
+             console.error(`Game document ${gameId} is missing a teamId.`);
+             return null;
+          }
 
           const teamDocRef = doc(db, 'teams', teamId);
           const teamSnap = await getDoc(teamDocRef);
@@ -64,7 +69,7 @@ export default function SpectatorLeaderboardPage() {
           };
         });
 
-        const teams = await Promise.all(teamsPromises);
+        const teams = (await Promise.all(teamsPromises)).filter((t): t is TeamScore => t !== null);
         
         teams.sort((a, b) => a.totalScore - b.totalScore);
         setLeaderboardData(teams);
