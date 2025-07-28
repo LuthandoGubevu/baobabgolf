@@ -3,37 +3,59 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
-import { onSnapshot, collection, query } from 'firebase/firestore';
+import { onSnapshot, collection, query, where, getDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { calculateTotalScore, calculateHolesPlayed } from '@/lib/utils';
+import { calculateTeamTotalScore } from '@/lib/utils';
 
-interface Team {
+interface LiveTeam {
   id: string;
   name: string;
   totalScore: number;
-  holesPlayed: number;
+  currentHole: number;
+  gameId: string;
 }
 
 export default function SpectatorLivePage() {
-  const [liveTeams, setLiveTeams] = useState<Team[]>([]);
+  const [liveTeams, setLiveTeams] = useState<LiveTeam[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, 'teams'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const teams = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          name: data.name,
-          totalScore: calculateTotalScore(data.scores),
-          holesPlayed: calculateHolesPlayed(data.scores),
-        };
-      }).filter(team => team.holesPlayed > 0 && team.holesPlayed < 18); // Only show teams on the course
-      
-      teams.sort((a, b) => a.totalScore - b.totalScore);
-      setLiveTeams(teams);
-      setLoading(false);
+    const gamesRef = collection(db, 'games');
+    const activeGamesQuery = query(gamesRef, where('active', '==', true));
+
+    const unsubscribe = onSnapshot(activeGamesQuery, async (snapshot) => {
+      try {
+        const teamsPromises = snapshot.docs.map(async (gameDoc) => {
+          const gameData = gameDoc.data();
+          const gameId = gameDoc.id;
+
+          const teamDocRef = doc(db, 'teams', gameData.teamId);
+          const teamSnap = await getDoc(teamDocRef);
+
+          if (!teamSnap.exists()) {
+            return null;
+          }
+
+          const teamName = teamSnap.data().name;
+          const totalScore = await calculateTeamTotalScore(gameId);
+
+          return {
+            id: gameData.teamId,
+            name: teamName,
+            totalScore,
+            currentHole: gameData.currentHole,
+            gameId: gameId,
+          };
+        });
+
+        const teams = (await Promise.all(teamsPromises)).filter((t): t is LiveTeam => t !== null);
+        teams.sort((a, b) => a.totalScore - b.totalScore);
+        setLiveTeams(teams);
+      } catch (error) {
+        console.error("Error fetching live game data:", error);
+      } finally {
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
@@ -59,7 +81,7 @@ export default function SpectatorLivePage() {
                   <div key={team.id} className="space-y-2">
                       <div className='flex justify-between items-baseline'>
                           <h3 className='text-lg font-semibold'>{team.name}</h3>
-                          <Badge variant="outline">On Hole {team.holesPlayed + 1}</Badge>
+                          <Badge variant="outline">On Hole {team.currentHole}</Badge>
                       </div>
                       <div className="text-right">
                         <p className='text-3xl font-bold font-mono text-primary'>{team.totalScore > 0 ? `+${team.totalScore}` : team.totalScore === 0 ? 'E' : team.totalScore}</p>

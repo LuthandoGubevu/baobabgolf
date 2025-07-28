@@ -18,71 +18,51 @@ export default function SpectatorLeaderboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      setLoading(true);
+    const gamesRef = collection(db, 'games');
+    const activeGamesQuery = query(gamesRef, where('active', '==', true));
+    
+    const unsubscribe = onSnapshot(activeGamesQuery, async (gameSnapshot) => {
       try {
-        // 1. Get all active games
-        const gamesRef = collection(db, 'games');
-        const activeGamesQuery = query(gamesRef, where('active', '==', true));
-        
-        // Use onSnapshot to listen for real-time changes to active games
-        const unsubscribe = onSnapshot(activeGamesQuery, async (gameSnapshot) => {
-          if (gameSnapshot.empty) {
-            setLeaderboardData([]);
-            setLoading(false);
-            return;
+        if (gameSnapshot.empty) {
+          setLeaderboardData([]);
+          setLoading(false);
+          return;
+        }
+
+        const teamsPromises = gameSnapshot.docs.map(async (gameDoc) => {
+          const gameData = gameDoc.data();
+          const gameId = gameDoc.id;
+          const teamId = gameData.teamId;
+
+          const teamDocRef = doc(db, 'teams', teamId);
+          const teamSnap = await getDoc(teamDocRef);
+          
+          let teamName = "Unknown Team";
+          if (teamSnap.exists()) {
+            teamName = teamSnap.data().name;
           }
 
-          // 2. For each active game, get team info and calculate score
-          const teamsPromises = gameSnapshot.docs.map(async (gameDoc) => {
-            const gameData = gameDoc.data();
-            const gameId = gameDoc.id;
-            const teamId = gameData.teamId;
+          const totalScore = await calculateTeamTotalScore(gameId);
 
-            // Get team document
-            const teamDocRef = doc(db, 'teams', teamId);
-            const teamSnap = await getDoc(teamDocRef);
-            
-            let teamName = "Unknown Team";
-            if (teamSnap.exists()) {
-              teamName = teamSnap.data().name;
-            }
-
-            // Calculate total score for the game
-            const totalScore = await calculateTeamTotalScore(gameId);
-
-            return {
-              id: teamId,
-              name: teamName,
-              totalScore,
-            };
-          });
-
-          const teams = await Promise.all(teamsPromises);
-          
-          // 3. Sort and update state
-          teams.sort((a, b) => a.totalScore - b.totalScore);
-          setLeaderboardData(teams);
-          setLoading(false);
+          return {
+            id: teamId,
+            name: teamName,
+            totalScore,
+          };
         });
 
-        return unsubscribe;
-
+        const teams = await Promise.all(teamsPromises);
+        
+        teams.sort((a, b) => a.totalScore - b.totalScore);
+        setLeaderboardData(teams);
       } catch (error) {
-        console.error("Error fetching leaderboard:", error);
+        console.error("Error processing leaderboard snapshot:", error);
+      } finally {
         setLoading(false);
       }
-    };
+    });
 
-    const unsubscribePromise = fetchLeaderboard();
-
-    return () => {
-        unsubscribePromise.then(unsubscribe => {
-            if (unsubscribe) {
-                unsubscribe();
-            }
-        });
-    };
+    return () => unsubscribe();
   }, []);
 
   return (
