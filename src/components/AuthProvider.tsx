@@ -10,6 +10,7 @@ import { Loader2 } from 'lucide-react';
 interface AuthContextType {
   user: User | null;
   userRole: 'scorekeeper' | 'spectator' | null;
+  fullName: string | null;
   teamId: string | null;
   loading: boolean;
 }
@@ -21,6 +22,7 @@ const publicPaths = ['/auth/login', '/auth/signup', '/'];
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<'scorekeeper' | 'spectator' | null>(null);
+  const [fullName, setFullName] = useState<string | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userData = userDoc.data();
           const role = userData.role as 'scorekeeper' | 'spectator';
           setUserRole(role);
+          setFullName(userData.fullName);
           if (role === 'scorekeeper') {
               setTeamId(userData.teamId);
           }
@@ -45,11 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // User exists in Auth but not in Firestore, likely an error state
             setUserRole(null);
             setTeamId(null);
+            setFullName(null);
         }
       } else {
         setUser(null);
         setUserRole(null);
         setTeamId(null);
+        setFullName(null);
       }
       setLoading(false);
     });
@@ -89,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userRole, teamId, loading }}>
+    <AuthContext.Provider value={{ user, userRole, teamId, fullName, loading }}>
       {children}
     </AuthContext.Provider>
   );
