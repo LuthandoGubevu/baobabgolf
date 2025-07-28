@@ -1,59 +1,68 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to check user roles and authentication status.
+    // Helper functions to keep rules readable
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    function isScorekeeper(userId) {
-      return isAuthenticated() && get(/databases/$(database)/documents/users/$(userId)).data.role == 'scorekeeper';
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Each user can only read and write their own document.
+    function isScorekeeper() {
+      // Check if the user document exists and has the role 'scorekeeper'
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'scorekeeper';
+    }
+
+    // A user can only read or write their own user document.
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
 
-    // Any authenticated user can read team data for leaderboards.
-    // Only a scorekeeper can create a team, and they must assign themselves as the scorekeeper.
+    // Rules for teams
     match /teams/{teamId} {
-      allow read: if isAuthenticated();
-      allow create: if isScorekeeper(request.auth.uid) && request.resource.data.scorekeeperId == request.auth.uid;
-      allow update, delete: if false; // Prevent modification after creation for data integrity.
+      // Any authenticated user can read team data (for leaderboards etc.)
+      // The query in the signup form also requires list permission.
+      allow get, list: if isAuthenticated();
+
+      // Only scorekeepers can create a new team.
+      // The new team document must link the scorekeeper's ID correctly.
+      allow create: if isScorekeeper() && request.resource.data.scorekeeperId == request.auth.uid;
+      
+      // No one can update or delete a team after creation for now.
+      allow update, delete: if false;
     }
 
-    // Rules for game documents.
+    // Rules for games.
     match /games/{gameId} {
-      // Only a scorekeeper can create a new game document.
-      allow create: if isScorekeeper(request.auth.uid) && request.resource.data.createdBy == request.auth.uid;
-      
-      // Only the scorekeeper who created the game can read or update it.
-      allow read, update: if isScorekeeper(request.auth.uid) && get(/databases/$(database)/documents/games/$(gameId)).data.createdBy == request.auth.uid;
-      
-      allow delete: if false; // Games cannot be deleted.
-
-      // Rules for the nested 'scores' subcollection within a game.
-      match /scores/{playerId} {
-        // Any authenticated user can read the scores (for spectator leaderboards).
-        allow read: if isAuthenticated();
+        // Only the scorekeeper who created the game can read, update, or delete it.
+        // Reading also requires list permission for the dashboard query.
+        allow list, get, update, delete: if isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/games/$(gameId)).data.createdBy;
         
-        // Only the scorekeeper who created the parent game can write scores.
-        allow write: if isScorekeeper(request.auth.uid) && get(/databases/$(database)/documents/games/$(gameId)).data.createdBy == request.auth.uid;
-      }
+        // Any scorekeeper can create a new game.
+        allow create: if isScorekeeper();
+
+        // Rules for the 'scores' subcollection within a game.
+        match /scores/{playerId} {
+            // Any authenticated user can read scores (for spectator leaderboards).
+            allow get, list: if isAuthenticated();
+            
+            // Only the scorekeeper who created the game can write scores.
+            allow write: if isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/games/$(gameId)).data.createdBy;
+        }
     }
 
-    // Rules for the chat functionality.
+    // Rules for chat channels.
     match /channels/{channelId}/messages/{messageId} {
-      // Any authenticated user can read (list) messages in any channel.
-      allow read: if isAuthenticated();
-      
-      // An authenticated user can only create messages as themselves.
-      allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
-      
-      allow update, delete: if false; // Messages are immutable.
+        // Any authenticated user can read (list) and create messages.
+        allow list, get, create: if isAuthenticated();
+
+        // Nobody can update or delete chat messages.
+        allow update, delete: if false;
     }
   }
 }
