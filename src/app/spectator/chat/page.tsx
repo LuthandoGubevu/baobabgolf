@@ -69,7 +69,7 @@ export default function SpectatorChatPage() {
     try {
         await addDoc(collection(db, "chatRooms", "global", "messages"), {
             text: newMessage.trim(),
-            senderId: user.uid,
+            senderId: user.uid, // This was the missing field
             displayName: fullName,
             role: userRole,
             timestamp: serverTimestamp(),

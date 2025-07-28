@@ -9,19 +9,19 @@ service cloud.firestore {
 
     match /teams/{teamId} {
       allow list, read: if request.auth != null;
-      // Only scorekeepers can create teams
       allow create: if request.auth != null && request.resource.data.scorekeeperId == request.auth.uid;
-      // For now, nobody can update or delete teams after creation
       allow update, delete: if false; 
     }
 
     match /chatRooms/{roomId} {
-      // Allow authenticated users to get the chat room document.
+      // This rule allows reading documents in the chatRooms collection, like "global"
       allow get: if request.auth != null;
 
-      // Allow authenticated users to list messages and create new ones.
-      match /messages/{messageId} {
-        allow list, create: if request.auth != null;
+      // This rule allows querying the messages subcollection
+      match /messages/{msgId} {
+        allow list: if request.auth != null;
+        // Allow creating a message if the senderId matches the user's auth uid
+        allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
         allow read, update, delete: if false;
       }
     }
