@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/components/AuthProvider';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -36,7 +36,7 @@ export default function SpectatorChatPage() {
     }
     
     const roomId = "global";
-    const messagesRef = collection(db, "chatRooms", roomId, "messages");
+    const messagesRef = collection(db, "channels", roomId, "messages");
     const q = query(messagesRef, orderBy("timestamp", "asc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -48,7 +48,7 @@ export default function SpectatorChatPage() {
       setLoading(false);
       toast({
         title: "Error",
-        description: "Could not load chat messages.",
+        description: "Could not load chat messages. " + error.message,
         variant: "destructive",
       });
     });
@@ -67,9 +67,9 @@ export default function SpectatorChatPage() {
     }
 
     try {
-        await addDoc(collection(db, "chatRooms", "global", "messages"), {
+        await addDoc(collection(db, "channels", "global", "messages"), {
             text: newMessage.trim(),
-            senderId: user.uid, // This was the missing field
+            senderId: user.uid,
             displayName: fullName,
             role: userRole,
             timestamp: serverTimestamp(),
