@@ -1,25 +1,42 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Authenticated users can read their own user document
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Users can only read/write their own document
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Authenticated users can read teams, only scorekeepers can create them.
+    // Teams can be read by anyone logged in, but only created by the assigned scorekeeper
     match /teams/{teamId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.scorekeeperId == request.auth.uid;
-      allow update, delete: if false; // No updates or deletes for now
+      allow read, list: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.scorekeeperId == request.auth.uid;
+      allow update, delete: if false; // For now
     }
 
-    // Authenticated users can read and create messages in any channel.
+    // Games can be read by anyone logged in.
+    // They can only be created or updated by the user who created them (the scorekeeper).
+    match /games/{gameId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && request.auth.uid == request.resource.data.createdBy;
+      allow delete: if false;
+    }
+
+    // Scores can be read by anyone, but only written by the game creator.
+    match /games/{gameId}/scores/{playerId} {
+      allow read, list: if isAuthenticated();
+      allow create, update: if isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/games/$(gameId)).data.createdBy;
+    }
+
+    // Any authenticated user can read or create chat messages.
     match /channels/{channelId}/messages/{messageId} {
-      allow read, create: if request.auth != null;
-      allow update, delete: if false; // No editing/deleting messages
+      allow read, create: if isAuthenticated();
+      allow list: if isAuthenticated();
+      allow update, delete: if false;
     }
   }
 }
-    
