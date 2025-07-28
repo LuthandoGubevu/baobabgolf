@@ -72,7 +72,7 @@ export default function SignupPage() {
         const teamDocRef = await addDoc(collection(db, 'teams'), {
           name: values.teamName,
           players: [values.player1, values.player2, values.player3, values.player4],
-          scorekeeperId: user.uid, // This is the crucial field
+          scorekeeperId: user.uid,
           scores: {},
         });
         teamId = teamDocRef.id;
@@ -166,7 +166,7 @@ export default function SignupPage() {
                         <FormField control={form.control} name="player1" render={({ field }) => (<FormItem><FormLabel>Player 1</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         <FormField control={form.control} name="player2" render={({ field }) => (<FormItem><FormLabel>Player 2</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         <FormField control={form.control} name="player3" render={({ field }) => (<FormItem><FormLabel>Player 3</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="player4" render={({ field }) => (<FormItem><FormLabel>Player 4</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name="player4" render={({ field }) => (<FormItem><FormLabel>Player 4</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormMessage /></FormItem>)} />
                    </div>
                 </div>
               )}
