@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { Logo } from '@/components/icons';
 
 const formSchema = z.object({
@@ -29,7 +29,7 @@ const formSchema = z.object({
   player2: z.string().optional(),
   player3: z.string().optional(),
   player4: z.string().optional(),
-}).refine(data => {
+}).refine((data) => {
     if (data.role === 'scorekeeper') {
         return !!data.name && !!data.player1 && !!data.player2 && !!data.player3 && !!data.player4;
     }
@@ -41,6 +41,7 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const auth = getAuth(app);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -140,7 +141,26 @@ export default function SignupPage() {
               <FormField control={form.control} name="password" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
-                    <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
+                     <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          {...field}
+                          className="pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 text-muted-foreground hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+                        </Button>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
               )} />
