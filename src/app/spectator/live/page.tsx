@@ -132,19 +132,19 @@ export default function SpectatorLivePage() {
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="sticky left-0 bg-muted/50">Player</TableHead>
+                                <TableHead className="sticky left-0 bg-muted/80">Player</TableHead>
                                 {holeHeaders.slice(0, team.holesInGame).map(hole => <TableHead key={hole} className="text-center">{hole}</TableHead>)}
-                                <TableHead className="text-right sticky right-0 bg-muted/50 font-bold">Total</TableHead>
+                                <TableHead className="text-right sticky right-0 bg-muted/80 font-bold">Total</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {team.players.map(player => (
                                 <TableRow key={player.playerId}>
-                                  <TableCell className="font-medium sticky left-0 bg-muted/50">{player.playerName}</TableCell>
+                                  <TableCell className="font-medium sticky left-0 bg-muted/80">{player.playerName}</TableCell>
                                   {holeHeaders.slice(0, team.holesInGame).map(hole => (
                                     <TableCell key={hole} className="text-center font-mono">{player.holeScores[hole] || '-'}</TableCell>
                                   ))}
-                                  <TableCell className="text-right sticky right-0 bg-muted/50 font-bold font-mono">{player.total}</TableCell>
+                                  <TableCell className="text-right sticky right-0 bg-muted/80 font-bold font-mono">{player.total}</TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
