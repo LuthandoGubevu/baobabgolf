@@ -15,7 +15,7 @@ interface TeamScore {
 }
 
 interface PlayerScore {
-  id: string; // Player ID
+  id: string; // Composite key: `${gameId}-${playerId}`
   playerName: string;
   teamName: string;
   totalScore: number;
@@ -67,7 +67,7 @@ export default function SpectatorLeaderboardPage() {
               const playerTotal = playerData.total || 0;
               teamTotalScore += playerTotal;
               allPlayers.push({
-                  id: playerDoc.id,
+                  id: `${gameId}-${playerDoc.id}`, // Create a unique composite key
                   playerName: playerData.playerName,
                   teamName: teamName,
                   totalScore: playerTotal
