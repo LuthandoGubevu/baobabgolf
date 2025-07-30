@@ -109,7 +109,7 @@ export default function SignupPage() {
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center p-4">
-      <Image src="https://placehold.co/1920x1080.png" alt="Golf course" data-ai-hint="golf course" fill className="object-cover" />
+      <Image src="/put.jpg" alt="A close up of a golf ball being putted into a hole" data-ai-hint="golf putting" fill className="object-cover" />
       <div className="absolute inset-0 bg-background/90" />
       <Card className="z-10 w-full max-w-2xl bg-card/50 backdrop-blur-lg border-white/20">
         <CardHeader className="text-center">
